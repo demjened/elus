@@ -1,0 +1,140 @@
+.figureicon {
+    width: 20px;
+    text-align: center;
+    vertical-align: middle;
+    text-shadow: -1px -1px 0 #000,  
+                  1px -1px 0 #000,
+                 -1px 1px 0 #000,
+                  1px 1px 0 #000; # sroke effect
+}
+
+.figureicon.big {
+    font-size: 150%;
+}
+
+.figureicon.small {
+    font-size: 100%;
+}
+
+.figureicon.yellow {
+    color: yellow;
+}
+
+.figureicon.green {
+    color: green;
+}
+
+.attempts {
+    font-size: 12px;
+    display: inline;
+    color: gray;
+}
+
+.btn.choice {
+    height: 32px;
+    margin: 0px 5px;
+    text-align: left;
+}
+
+.figure {
+    width: 180px;
+    display: inline-block;
+}
+
+.figure.chosen {
+    border: 1px solid gray;
+    border-radius: 4px;
+    padding: 5px;
+    background-color: #EEEEEE;
+}
+
+.figure.correct {
+    background-color: #99E699;
+}
+
+.figure.incorrect {
+    background-color: #E99696;
+}
+
+.figure.select-next {
+    font-style: italic;
+    text-align: center;
+}
+
+.btn.commandbutton {
+    width: 200px;
+    font-size: 150%;
+}
+
+.btn.hoverable {
+    transition: 0.2s;
+}
+
+.btn.hoverable:hover {
+    transform: translateY(-2px);
+}
+
+.round {
+    #display: inline-block;
+    padding: 6px;
+}
+
+.round-label {
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Verdana;
+    font-variant: small-caps;
+}
+
+.result {
+    font-style: italic;
+}
+
+
+.carousel-control {
+    width: 20px;
+    color: gray;
+}
+
+.carousel-control.left,
+.carousel-control.right {
+    background-color: none;
+    background-image: none;
+    top: 30px;
+}
+
+.carousel-control.left {
+    left: -10px;
+}
+
+
+.carousel-control:hover {
+    color: black;
+    text-decoration: none;
+    filter: none;
+}
+
+.carousel-control:focus {
+    color: gray;
+}
+
+.carousel-indicators {
+    bottom: -45px;
+}
+
+.carousel-indicators li {
+    border: 1px solid gray;
+}
+
+.carousel-indicators .active {
+    background-color: gray;
+}
+
+.carousel-inner {
+    margin-bottom: 20px;
+}
+
+.carousel-inner .item {
+    margin-left: 20px;
+}

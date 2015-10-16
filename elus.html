@@ -1,0 +1,85 @@
+<head>
+    <title>Elus game</title>
+    <script src="js/jquery-2.1.4.js"></script>
+    <script src="js/elus.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css"></link>
+    <link rel="stylesheet" href="css/elus.css"></link>
+    <link rel="stylesheet" href="css/font-awesome.css"></link>
+</head>
+<body>
+
+  <div class="container">
+
+    <h1>Elus game</h1>
+        
+    <!-- command buttons -->
+    <button id="button-new-game" class='btn commandbutton btn-info'>New game</button>
+    <button id="button-instructions" class='btn commandbutton btn-info' data-toggle="modal" data-target="#instructions">Instructions</button>
+        
+    <!-- instructions modal panel -->
+    <div id="instructions" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h4 class="modal-title">Instructions</h4>
+            <span class="fa fa-close" data-dismiss="modal"></span>
+          </div>
+      
+          <div class="modal-body">
+            <div id="instructions-carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+              <div class="carousel-inner" role="listbox">
+                <div class="item active">
+                  <b>Instructions:</b>
+                </div>
+                <div class="item">
+                  Love thy Meli
+                </div>
+                <div class="item">
+                  The End
+                </div>
+              </div>
+              
+              <ol class="carousel-indicators">
+                  <li data-target="#instructions-carousel" data-slide-to="0" class="active"></li>
+                  <li data-target="#instructions-carousel" data-slide-to="1"></li>
+                  <li data-target="#instructions-carousel" data-slide-to="2"></li>
+              </ol>
+
+              <a class="left carousel-control collapse" href="#instructions-carousel" role="button" data-slide="prev">
+                  <span class="fa fa-arrow-left"></span>
+              </a>
+              <a class="right carousel-control" href="#instructions-carousel" role="button" data-slide="next">
+                  <span class="fa fa-arrow-right"></span>
+              </a>
+            </div>
+          </div>
+<!--          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+-->
+        </div>
+      </div>
+    </div>
+        
+        <div id="instructions" class="well collapse">
+    
+            
+
+          </div>
+        
+  <div class="well">
+    Attempts left: <div class="attempts value"></div>
+  </div>
+
+  <ul class="list-group rounds">
+    <!-- rounds will go here -->
+  </ul>
+
+  <p class="result">
+    <!-- result will go here -->
+  </p>
+</div>
+</body>
