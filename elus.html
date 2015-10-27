@@ -1,85 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-    <title>Elus game</title>
-    <script src="js/jquery-2.1.4.js"></script>
-    <script src="js/elus.js"></script>
-    <script src="js/bootstrap.js"></script>
-    <link rel="stylesheet" href="css/bootstrap.css"></link>
-    <link rel="stylesheet" href="css/elus.css"></link>
-    <link rel="stylesheet" href="css/font-awesome.css"></link>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Elus is a logic game... with hidden rules!">
+    <meta name="author" content="Adam Demjen demjened@gmail.com">
+ 
+    <title>Elus</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/elus.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <script type="text/javascript" src="js/jquery-2.1.4.js"></script>
+    <script type="text/javascript" src="js/elus.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
 </head>
 <body>
-
   <div class="container">
-
-    <h1>Elus game</h1>
-        
-    <!-- command buttons -->
-    <button id="button-new-game" class='btn commandbutton btn-info'>New game</button>
-    <button id="button-instructions" class='btn commandbutton btn-info' data-toggle="modal" data-target="#instructions">Instructions</button>
-        
-    <!-- instructions modal panel -->
-    <div id="instructions" class="modal fade">
-      <div class="modal-dialog">
-        <div class="modal-content">
-
-          <div class="modal-header">
-            <h4 class="modal-title">Instructions</h4>
-            <span class="fa fa-close" data-dismiss="modal"></span>
-          </div>
-      
-          <div class="modal-body">
-            <div id="instructions-carousel" class="carousel slide" data-ride="carousel" data-interval="false">
-              <div class="carousel-inner" role="listbox">
-                <div class="item active">
-                  <b>Instructions:</b>
-                </div>
-                <div class="item">
-                  Love thy Meli
-                </div>
-                <div class="item">
-                  The End
-                </div>
-              </div>
-              
-              <ol class="carousel-indicators">
-                  <li data-target="#instructions-carousel" data-slide-to="0" class="active"></li>
-                  <li data-target="#instructions-carousel" data-slide-to="1"></li>
-                  <li data-target="#instructions-carousel" data-slide-to="2"></li>
-              </ol>
-
-              <a class="left carousel-control collapse" href="#instructions-carousel" role="button" data-slide="prev">
-                  <span class="fa fa-arrow-left"></span>
-              </a>
-              <a class="right carousel-control" href="#instructions-carousel" role="button" data-slide="next">
-                  <span class="fa fa-arrow-right"></span>
-              </a>
-            </div>
-          </div>
-<!--          
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          </div>
--->
-        </div>
-      </div>
+    <div class="jumbotron">
+      <h1>ELUS</h1>
     </div>
-        
-        <div id="instructions" class="well collapse">
+
+    <div class="stats">
+      <span class="stats-label">Level</span>
+      <span class="stats-value">
+        <div id="level-value-container">
+          <div id="level-value" class="level-value">1</div>
+        </div>
+      </span>
+      
+      <span class="stats-label">Figures</span>
+      <span id="figures-value" class="stats-value">1</span><span class="stats-value">/8</span>
+
+      <span class="stats-label">Tries</span>
+      <span id="tries-left-value" class="stats-value">3</span>
+      
+      <span class="stats-label">Rule</span>
+      <span id="rule-value" class="stats-value fill">???</span>
+    </div>
     
-            
-
-          </div>
-        
-  <div class="well">
-    Attempts left: <div class="attempts value"></div>
+    <div class="figures">
+      <!-- figures and choices will go here -->
+    </div>
+    
+    <div id="status-value" class="statusbar">
+      <!-- status bar messages will go here -->
+    </div>
+    &nbsp;
+    <p class="button-bar">
+      <button id="button-new-game" class='btn btn-lg btn-info'>New game</button>
+      <button id="button-next-level" class='btn btn-lg btn-success'>Next level</button>
+      <button id="button-instructions" class='btn btn-lg btn-primary' data-toggle="modal" data-target="#instructions">Instructions</button>
+      <button id="button-cancel-game" class='btn btn-lg btn-warning'>Cancel game</button>
+    </p>
+    
   </div>
-
-  <ul class="list-group rounds">
-    <!-- rounds will go here -->
-  </ul>
-
-  <p class="result">
-    <!-- result will go here -->
-  </p>
-</div>
 </body>
+</html>

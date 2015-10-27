@@ -1,51 +1,162 @@
-.figureicon {
-    width: 20px;
-    text-align: center;
-    vertical-align: middle;
-    text-shadow: -1px -1px 0 #000,  
-                  1px -1px 0 #000,
-                 -1px 1px 0 #000,
-                  1px 1px 0 #000; # sroke effect
+@font-face {
+  font-family: 'munroregular';
+  src: url('../fonts/munro-webfont.eot');
+  src: url('../fonts/munro-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../fonts/munro-webfont.woff2') format('woff2'),
+       url('../fonts/munro-webfont.woff') format('woff'),
+       url('../fonts/munro-webfont.ttf') format('truetype'),
+       url('../fonts/munro-webfont.svg#munroregular') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
-.figureicon.big {
-    font-size: 150%;
+* {
+  font-family: 'munroregular';
 }
 
-.figureicon.small {
-    font-size: 100%;
+/* statusbar styles */
+
+.statusbar {
+  border: 2px solid #193BA0;
+  color: #193BA0;
+  background-color: #B5C2EA;
+  display: block;
+  font-size: 14px;
+  line-height: 30px;
+  padding: 2px 8px;
 }
 
-.figureicon.yellow {
-    color: yellow;
+/* stats styles */
+
+.stats {
+  background-color: #B5C2EA;
+  border: 2px solid #193BA0;
+  color: #193BA0;
+  display: block;
+  line-height: 24px;
 }
 
-.figureicon.green {
-    color: green;
+.stats * {
+  padding: 4px;
+  display: table-cell;
+  vertical-align: middle;
 }
 
-.attempts {
-    font-size: 12px;
-    display: inline;
-    color: gray;
+.stats .stats-label {
+  background-color: #193BA0;
+  color: #B5C2EA;
+  font-size: 24px;
+  font-variant: small-caps;
 }
 
-.btn.choice {
-    height: 32px;
-    margin: 0px 5px;
-    text-align: left;
+.stats .stats-value {
+  font-size: 30px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
+
+.stats .fill {
+  width: 100%; /* fill remaining space */
+}
+
+/* figure rows styles */
+
+.figure-row {
+  background-color: #B5C2EA;
+  border: 2px solid #193BA0;
+  color: #193BA0;
+  display: block;
+  line-height: 36px;
+}
+
+.figure-row * {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+
+.figure-row .figure-row-number {
+  background-color: #193BA0;
+  color: #B5C2EA;
+  display: table-cell;
+  font-size: 36px;
+  padding: 4px;
+  text-align: center;
+  width: 26px;
+}
+
+.figure-row .figure-row-details {
+  padding-left: 4px;
+}
+
+/* figure styles */
 
 .figure {
-    width: 180px;
-    display: inline-block;
+  border: 2px solid gray;
+  border-radius: 8px 4px;
+  display: inline-block;
+  #font-size: 1.2em;
+  #line-height: 32px;
 }
 
-.figure.chosen {
-    border: 1px solid gray;
-    border-radius: 4px;
-    padding: 5px;
-    background-color: #EEEEEE;
+.figure-icon {
+  display: inline-block;
+  width: 22px;
+  #text-align: right;
+  text-shadow: -1px -1px 0 #000,
+                1px -1px 0 #000,
+               -1px 1px 0 #000,
+                1px 1px 0 #000;
+  vertical-align: middle;
+}
+
+.figure-icon.big {
+  font-size: 1.4em;
+}
+
+.figure-icon.small {
+  font-size: 0.9em;
+}
+
+.figure-icon.green {
+  color: green;
+}
+
+.figure-icon.yellow {
+  color: yellow;
+}
+
+.figure-label {
+  display: inline-block;
+  width: 140px;
+  font-size: 1.2em;
+  #border: 1px solid green;
+  line-height: 30px;
+  vertical-align: middle;
+}
+
+.figure-label.hidden {
+  display: none;
+}
+
+.figure.selectable {
+  background-color: #FFF;
+}
+
+.figure.selectable:hover,
+.figure.selectable:active {
+  border: 2px solid black;
+  background-color: #EEE;
+  cursor: pointer;
+}
+
+.figure.selected {
+  background-color: #DDD;
+  border: none;
+}
+
+.figure.placeholder {
+  border: 2px dashed gray;
 }
 
 .figure.correct {
@@ -54,87 +165,4 @@
 
 .figure.incorrect {
     background-color: #E99696;
-}
-
-.figure.select-next {
-    font-style: italic;
-    text-align: center;
-}
-
-.btn.commandbutton {
-    width: 200px;
-    font-size: 150%;
-}
-
-.btn.hoverable {
-    transition: 0.2s;
-}
-
-.btn.hoverable:hover {
-    transform: translateY(-2px);
-}
-
-.round {
-    #display: inline-block;
-    padding: 6px;
-}
-
-.round-label {
-    display: inline-block;
-    font-size: 16px;
-    font-weight: bold;
-    font-family: Verdana;
-    font-variant: small-caps;
-}
-
-.result {
-    font-style: italic;
-}
-
-
-.carousel-control {
-    width: 20px;
-    color: gray;
-}
-
-.carousel-control.left,
-.carousel-control.right {
-    background-color: none;
-    background-image: none;
-    top: 30px;
-}
-
-.carousel-control.left {
-    left: -10px;
-}
-
-
-.carousel-control:hover {
-    color: black;
-    text-decoration: none;
-    filter: none;
-}
-
-.carousel-control:focus {
-    color: gray;
-}
-
-.carousel-indicators {
-    bottom: -45px;
-}
-
-.carousel-indicators li {
-    border: 1px solid gray;
-}
-
-.carousel-indicators .active {
-    background-color: gray;
-}
-
-.carousel-inner {
-    margin-bottom: 20px;
-}
-
-.carousel-inner .item {
-    margin-left: 20px;
 }

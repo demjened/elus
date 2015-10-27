@@ -20,29 +20,31 @@ var Figure = function(shorthand) {
         return this.shape == 'C' ? 'L' : 'C';
     }
     
-    this.icon = function() {
-        return '<span class="fa figureicon'
+    this.iconClass = function() {
+        return 'fa figure-icon'
             + (this.size == 'B' ? ' big' : ' small')
             + (this.color == 'Y' ? ' yellow' : ' green')
-            + (this.shape == 'C' ? ' fa-circle' : ' fa-square')
-            + '"></span>';
+            + (this.shape == 'C' ? ' fa-circle' : ' fa-square');
     }
     
-    this.render = function(clazz) {
-        return '<div class="figure' + (clazz ? ' ' + clazz : '') + '">'
-            + this.icon() + ' '
-            + Size[this.size] + " " + Color[this.color] + " " + Shape[this.shape]
-            + '</div>';
+    this.render = function(id, clazz) {
+        return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + shorthand + '">'
+            +   '<span class="figure-icon ' + this.iconClass() + '"></span>'
+            +   '<span class="figure-label">' + Size[this.size] + " " + Color[this.color] + " " + Shape[this.shape] + '</span>'
+            + '</span>';
     }
 }
 
 var Strategy = [
+    [           // LEVEL 1 STRATEGIES
     '-?c=',     // always choose same color
     '-?s=',     // always choose same size
     '-?h=',     // always choose same shape
     '-?c!',     // always choose different color
     '-?s!',     // always choose different size
-    '-?h!',     // always choose different shape
+    '-?h!'      // always choose different shape
+    ], 
+    [           // LEVEL 2 STRATEGIES
     'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
     'cY?sB:sS', // if the last figure is yellow, choose a big one, if not choose a small one
     'cY?hC:hL', // if the last figure is yellow, choose a circle, if not choose a lozenge
@@ -51,7 +53,9 @@ var Strategy = [
     'cG?sB:hC', // if the last figure is blue, choose a big figure, if not choose a circle
     'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
     'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
-    'hC?cY:sS', // if the last figure is a circle, choose a yellow one, if not choose a small one
+    'hC?cY:sS' // if the last figure is a circle, choose a yellow one, if not choose a small one
+    ],
+    [           // LEVEL 3 STRATEGIES
     'sB?hL:cG', // if the last figure is big, choose a lozenge, if not choose a blue one
     'sB?hC:c=', // if the last figure is big, choose a circle, if not choose one of the same color
     'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
@@ -59,7 +63,8 @@ var Strategy = [
     'sB?cY:hL', // if the last figure is big, choose a yellow one, if not choose a lozenge
     'sB?cG:cY', // if the last figure is big, choose a blue one, if not choose a yellow one
     'sB?cG:h=', // if the last figure is big, choose a blue one, if not choose one of the same type
-    'sB?cG:c!'  // if the last figure is big, choose a blue one, if not choose one of another color    
+    'sB?cG:c!'  // if the last figure is big, choose a blue one, if not choose one of another color
+    ]
 ]
 
 function strategyToString(strategy) { // TODO: eliminate duplication
@@ -74,7 +79,7 @@ function strategyToString(strategy) { // TODO: eliminate duplication
     var falseRule = (i2 == -1) ? '' : strategy.substring(i2 + 1);
     
     if (condition == '-') {
-        text += 'Always ';
+        text = 'Always choose ' + ruleToString(trueRule);
     } else {
         text = 'If the last figure is ';
         if (conditionToken == 's') { // size
@@ -84,13 +89,7 @@ function strategyToString(strategy) { // TODO: eliminate duplication
         } else if (conditionToken == 'h') { // shape
             text += Shape[conditionValue];
         }
-        text += ', then ';
-    }
-    
-    text += 'choose ' + ruleToString(trueRule);
-    
-    if (condition != '-') {
-        text += ', otherwise choose ' + ruleToString(falseRule);
+        text += ', then choose ' + ruleToString(trueRule) + ', otherwise choose ' + ruleToString(falseRule);
     }
     return text;
 }
@@ -109,15 +108,24 @@ function ruleToString(rule) { // TODO: eliminate duplication
     }
 }
 
+function ruleTooltip(level) {
+    switch (level) {
+        case 1: return "Level 1: Always choose same/different feature";
+        case 2: return "Level 2: TODO";
+        case 3: return "Level 3: TODO";
+    }
+}
 
-function generateStrategy() {
-    //return pickOneRandom(Strategy);
-    return 'sB?cG:c!';
+
+function generateStrategy(currentLevel) {
+    return pickOneRandom(Strategy[currentLevel - 1]);
+    //return '-?c=';     // always choose same color
+
 }
 
 function generateAllFigures() {
     var figures = [];
-    
+   
     for (var i = 0; i < Object.keys(Size).length; i++) {
         for (var j = 0; j < Object.keys(Color).length; j++) {
             for (var k = 0; k < Object.keys(Shape).length; k++) {
@@ -213,122 +221,195 @@ function isMatching(chosen, pool, previous, rule) {
     return indexOf(matchingFigures(pool, previous, rule), chosen) >= 0;
 }
 
-function newRound(round) {
-    // add new round list item
-    var newRound = $('<li class="list-group-item round"><div class="round-label">Round ' + round + '</div>&nbsp;&nbsp;&nbsp;</li>');
-    $('.rounds').append(newRound);
-    newRound.hide().slideDown(200, function() {
-        // after round 3, display choice buttons
-        if (round > 3) { // TODO: use boolean input param
+function addFigureRow(round) {
+    var newRound = $('<div class="figure-row">'
+      +   '<span class="figure-row-number">' + round + '</span>'
+      +   '<span class="figure-row-details"></span>' // figure contents will go here
+      + '</div>');
+    $('.figures').append(newRound);
+    $('#figures-value').text(round);
+    newRound.hide().slideDown(500);
+}
 
-            // get 3 choice buttons based on current figure/rule
-            var choices = nextChoicesShuffled(allFigures, currentFigure, currentRule);
-            $('.rounds').children().last().append('<div id="select-next" class="figure select-next">Select next figure</div>');
+function addFigure(figure) {
+    $('.figures').children().last().find('.figure-row-details').append(figure.render(null, 'selected'));
+}
+
+function addChoices() {
+    // get 3 choice buttons based on current figure/rule
+    var choices = nextChoicesShuffled(allFigures, currentFigure, currentRule);
+    var placeholder = '<span class="figure placeholder">'
+      +   '<span class="figure-icon"></span>'
+      +   '<span id="select-next" class="figure-label">???</span>'
+      + '</span>';
+    $('.figures').children().last().find('.figure-row-details').append(placeholder);
+    
+    // add 3 choice buttons
+    for (var i = 0; i < 3; i++) {
+        var figure = choices[i];
+        var choice = $(figure.render('choice' + i, 'selectable'));
             
-            // add 3 choice buttons
-            for (var i = 0; i < 3; i++) {
-                var choice = choices[i];
-                var html = '<button id="choice' + i + '" class="btn btn-default choice hoverable" value="' + choice.shorthand + '">' 
-                    + choice.render()
-                    + '</button>';
-                $('.rounds').children().last().append(html);
-            }
-            
-            $('[id^=choice]').click(function(html) {
-                choose(this, choices);
-            });
-        }
-    });
+        choice.click(function() {
+            choose(this, choices);
+        });
+        
+        $('.figures').children().last().find('.figure-row-details').append(choice);
+    }
 }
 
 function choose(button, choices) {
-    var figure = new Figure(button.value);
-    var selectNext = $('#select-next');
+    var figure = new Figure(button.getAttribute('data-value'));
+    var selectNext = $('.figure.placeholder');
     var btn = $(button);
     
-        
-    $('[id^=choice]').attr('disabled', true).removeClass('hoverable').removeAttr('id');
+    $('[id^=choice]').off('click').removeClass('selectable').removeAttr('id');
     selectNext.fadeOut();
 
     btn.fadeOut(function() {
-        //
-        var placeholder = $('<div class="figure"></div>');
+        // 3->2 buttons animation
+        var placeholder = $('<span class="figure"></span>');
         btn.replaceWith(placeholder);
-        placeholder.hide(200);
+        placeholder.hide(500).remove();
         
-        //
-        var chosen = $(figure.render('chosen'));
+        // replace figure
+        var chosen = $(figure.render());
         selectNext.replaceWith(chosen);
         chosen.hide().fadeIn().addClass(isMatching(figure, choices, currentFigure, currentRule) ? 'correct' : 'incorrect').removeAttr('id');
 
         if (!isMatching(figure, choices, currentFigure, currentRule)) {
-            var attemptsValue = $('.attempts.value');
+            attemptsLeft--;
+            var attemptsValue = $('#tries-left-value');
             attemptsValue.fadeOut(function() {
-                attemptsValue.html(--attemptsLeft).fadeIn();
+                attemptsValue.text(attemptsLeft).fadeIn();
             })
+            $('#status-value').text('Incorrect choice - ' + attemptsLeft + ' tries left.');
+        } else {
+            $('#status-value').text('Correct choice!');
         }
     
         // check how many attempts/rounds we have left in the game
-        if (currentRound == 9 || attemptsLeft == 0) {
-            finishGame();
+        if (++currentRound == 9 || attemptsLeft == 0) {
+            finishGame(attemptsLeft > 0);
         } else {
             currentFigure = figure;
             currentRule = nextRule(strategy, figure);
-            newRound(currentRound++);
+            addFigureRow(currentRound);
+            addChoices();
         }
     });
 }
 
-function newGame() {
-    strategy = generateStrategy();
-    currentRound = 1, attemptsLeft = 3;
-    $('.rounds').empty();
-    $('.result').empty();
-    $('#instructions').hide();
-    $('#instructions-carousel').carousel(0); // reset
-    
-    // set attempts left
-    $('.attempts.value').text(attemptsLeft);
-    
-    // display first 3 figures
+function addInitialFigures() {
     for (var i = 0; i < 3; i++) {
         currentFigure = (i == 0) ? pickOneRandom(allFigures) : pickOneRandom(matchingFigures(allFigures, currentFigure, currentRule));
-        newRound(currentRound++);
-        
-        $('.rounds').children().last().append(currentFigure.render('chosen'));
+        addFigureRow(++currentRound);
+        addFigure(currentFigure);
         currentRule = nextRule(strategy, currentFigure);
     }
-    
-    // then display choices based on last figure
-    newRound(currentRound++);
 }
 
-function finishGame() {
+function newGame() {
+    // show game containers
+    $('.stats').show();
+    $('.figures').show();
+    
+    // hide buttons
+    $('#button-new-game').hide();
+    $('#button-next-level').hide();
+    $('#button-cancel-game').show();
+    $('#button-instructions').hide();
+    
+    // start at level 1
+    currentLevel = 0;
+    nextLevel(++currentLevel);
+}
+
+function initialize() {
+    $('.stats').hide();
+    $('.figures').hide();
+    $('#status-value').text('Welcome to ELUS!');
+    $('#button-new-game').show();
+    $('#button-instructions').show();
+    $('#button-cancel-game').hide();
+}
+
+
+function finishGame(won) {
     var html = '';
-    if (attemptsLeft == 0) {
-        html = '<div style="display: inline; color: red">You lost.</div>';
-    } else {
+    if (won) {
         html = '<div style="display: inline; color: green">You won!</div>';
+        $('#button-next-level').show();
+    } else {
+        html = '<div style="display: inline; color: red">You lost.</div>';
+        $('#button-new-game').show();
     }
     html += ' The strategy was: <b>' + strategyToString(strategy) + '</b>';
     
-    $('.result').html(html);
+    $('#status-value').html(html);
+}
+
+
+function cancelGame() {
+    var btn = $('#button-cancel-game');
+    var pressed = btn.attr('pressed');
+    if (!pressed) {
+        btn.attr('pressed', true);
+        btn.text('Are you sure?');
+        btn.on('mouseout', function() {
+            btn.removeAttr('pressed');
+            btn.text('Cancel game');
+        });
+    } else {
+        initialize();
+    }
+}
+
+function nextLevel() {
+    currentRound = 0, attemptsLeft = 3;
+    
+    // generate strategy based on current level
+    strategy = generateStrategy(currentLevel);
+    
+    // clear all containers
+    $('.figures').empty();
+    $('.result').empty();
+    $('#instructions').hide();
+    $('#instructions-carousel').carousel(0); // reset
+    $('#button-next-level').hide();
+    
+    // set initial values
+    $('#tries-left-value').text(attemptsLeft);
+    $('#level-value').text(currentLevel);
+    $('#rule-value').tooltip({title: ruleTooltip(currentLevel), animation: true}); 
+    $('#status-value').text('Starting level ' + currentLevel + '.');
+    
+    // add first 3 figures, then display choices based on last figure
+    addInitialFigures();
+    addFigureRow(++currentRound);
+    addChoices();
 }
 
 // **** execution starts here **** 
 
 var allFigures = generateAllFigures();
-var strategy, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
+var strategy, currentLevel, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
 
 // when document is loaded, start new game
 $(document).ready(function() {
-    newGame();
-    
-    // "New game" button should also start new game
+    // "New game" button should start new game
     $('#button-new-game').click(function() {
        newGame();
     });
     
+    $('#button-next-level').hide().click(function() {
+       nextLevel(++currentLevel);
+    });
+    
+    $('#button-cancel-game').click(function() {
+       cancelGame();
+    });
+    
+    // "Instructions" button should display instructions
     $('#button-instructions').click(function() {
         $('#instructions').slideToggle(200, function() {
             $('#instructions-carousel').carousel(0); // reset
@@ -363,5 +444,6 @@ $(document).ready(function() {
         }
     });
     
+    initialize();
 });
 
