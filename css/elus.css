@@ -53,6 +53,7 @@
   font-size: 30px;
   padding-left: 8px;
   padding-right: 8px;
+  white-space: nowrap;
 }
 
 .stats .fill {
@@ -63,17 +64,22 @@
 
 .figure-row {
   background-color: #B5C2EA;
-  border: 2px solid #193BA0;
+  border-bottom: 2px solid #193BA0;
+  border-left: 2px solid #193BA0;
+  border-right: 2px solid #193BA0;
   color: #193BA0;
   display: block;
   line-height: 36px;
+}
+
+.figure-row:last-child {
+  border-bottom: none;
 }
 
 .figure-row * {
   display: table-cell;
   vertical-align: middle;
 }
-
 
 .figure-row .figure-row-number {
   background-color: #193BA0;
@@ -85,24 +91,19 @@
   width: 26px;
 }
 
-.figure-row .figure-row-details {
-  padding-left: 4px;
-}
-
 /* figure styles */
 
 .figure {
   border: 2px solid gray;
   border-radius: 8px 4px;
   display: inline-block;
-  #font-size: 1.2em;
-  #line-height: 32px;
+  margin-left: 4px;
 }
 
 .figure-icon {
   display: inline-block;
-  width: 22px;
-  #text-align: right;
+  width: 30px;
+  text-align: center;
   text-shadow: -1px -1px 0 #000,
                 1px -1px 0 #000,
                -1px 1px 0 #000,
@@ -128,11 +129,16 @@
 
 .figure-label {
   display: inline-block;
-  width: 140px;
   font-size: 1.2em;
-  #border: 1px solid green;
   line-height: 30px;
   vertical-align: middle;
+  width: 140px;
+}
+
+.figure-label.next {
+  font-size: 1.8em;
+  text-align: center;
+  width: 30px;
 }
 
 .figure-label.hidden {
@@ -148,6 +154,8 @@
   border: 2px solid black;
   background-color: #EEE;
   cursor: pointer;
+  transform: translateY(-2px);
+  transition: all 0.2s;
 }
 
 .figure.selected {
@@ -155,14 +163,30 @@
   border: none;
 }
 
-.figure.placeholder {
+.figure.not-selected {
+  background-color: #AAA;
+  border: none;
+}
+
+.figure.blank {
+  width: 170px;
+  height: 36px;
+  border: none;
+}
+
+.figure.next-placeholder {
+  background-color: #DDD;
   border: 2px dashed gray;
+  text-align: center;
+  width: 60px;
 }
 
 .figure.correct {
-    background-color: #99E699;
+  background-color: #99E699;
+  border: none;
 }
 
 .figure.incorrect {
-    background-color: #E99696;
+  background-color: #E99696;
+  border: none;
 }

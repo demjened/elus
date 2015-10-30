@@ -1,3 +1,9 @@
+// TODO: elus namespace
+// TODO: separate UI from game logic
+// TODO: documentation
+// TODO: unit tests
+// TODO: fix wording (choose vs select)
+
 var Size = { 'S': 'Small', 'B': 'Big' }
 var Color = { 'G': 'Green', 'Y': 'Yellow' }
 var Shape = { 'C': 'Circle', 'L': 'Square' }
@@ -36,6 +42,17 @@ var Figure = function(shorthand) {
 }
 
 var Strategy = [
+    /*
+    1st round is simple, there is one variable that either alternates or stays the same, while the other two variables are ALWAYS irrelevant. Examples: always big; or alternating color. The pattern should be easy to see, the only difficulty may arise when in the initial sequence more than one variable follows some pattern, and then you face a choice and all you can do is guess. 
+    
+    2nd round is where one variable is the cause, and the other is the consequence (or cause and effect). This ALWAYS leaves one variable irrelevant. Examples are: if big choose blue, if small choose yellow; if circle, choose same size, if lozenge choose different size. With the first figure you choose you most likely have to guess. Here is a rule that make help to guess right. Let's say you have to choose from these choices: 
+        1. Big blue lozenge 
+        2. Big yellow lozenge 
+        3. Small blue circle 
+    The right choice should have a unique variable that none of the other choices have. Figure 1 has no unique variable (there is another big, or blue or lozenge figure). Figure 2 has a unique color. Figure 3 has unique shape and size. Unless you already see a pattern that rules out figure 3, your best odds are if you choose it. If it proves correct, you know that the consequence is either size or shape, and you should be able to test different patterns and arrive to the correct pattern by now. 
+
+    3rd round works like this: if variable x is this, then y is this, if variable x is the other, than z is this. In other words, one variable is the cause, but it affects different variables (consequence) depending on it's value. An example: if size is big, then shape is circle, if size is small then color is blue. Now you will definitely HAVE to guess with the first choice of figure, do it like in the previous round. It will give you the starting point - (one of) the unique variable(s) of the correct figure among the 3 choices is the consequence, so it cannot be the cause. That's where you turn on your logic to work through the possiblities. 
+    */
     [           // LEVEL 1 STRATEGIES
     '-?c=',     // always choose same color
     '-?s=',     // always choose same size
@@ -45,21 +62,21 @@ var Strategy = [
     '-?h!'      // always choose different shape
     ], 
     [           // LEVEL 2 STRATEGIES
-    'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
     'cY?sB:sS', // if the last figure is yellow, choose a big one, if not choose a small one
+    'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
+    'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
+    'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
+    'sB?cY:cG' // if the last figure is big, choose a yellow one, if not choose a blue one
+    ],
+    [           // LEVEL 3 STRATEGIES
+    'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
     'cY?hC:hL', // if the last figure is yellow, choose a circle, if not choose a lozenge
     'cG?hC:hL', // if the last figure is blue, choose a circle, if not choose a lozenge
     'cG?sB:h!', // if the last figure is blue, choose a big figure, if not choose a different type
     'cG?sB:hC', // if the last figure is blue, choose a big figure, if not choose a circle
-    'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
-    'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
-    'hC?cY:sS' // if the last figure is a circle, choose a yellow one, if not choose a small one
-    ],
-    [           // LEVEL 3 STRATEGIES
+    'hC?cY:sS', // if the last figure is a circle, choose a yellow one, if not choose a small one
     'sB?hL:cG', // if the last figure is big, choose a lozenge, if not choose a blue one
     'sB?hC:c=', // if the last figure is big, choose a circle, if not choose one of the same color
-    'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
-    'sB?cY:cG', // if the last figure is big, choose a yellow one, if not choose a blue one
     'sB?cY:hL', // if the last figure is big, choose a yellow one, if not choose a lozenge
     'sB?cG:cY', // if the last figure is big, choose a blue one, if not choose a yellow one
     'sB?cG:h=', // if the last figure is big, choose a blue one, if not choose one of the same type
@@ -227,7 +244,7 @@ function addFigureRow(round) {
       +   '<span class="figure-row-details"></span>' // figure contents will go here
       + '</div>');
     $('.figures').append(newRound);
-    $('#figures-value').text(round);
+    $('#figures-value').text(round + '/8');
     newRound.hide().slideDown(500);
 }
 
@@ -238,9 +255,8 @@ function addFigure(figure) {
 function addChoices() {
     // get 3 choice buttons based on current figure/rule
     var choices = nextChoicesShuffled(allFigures, currentFigure, currentRule);
-    var placeholder = '<span class="figure placeholder">'
-      +   '<span class="figure-icon"></span>'
-      +   '<span id="select-next" class="figure-label">???</span>'
+    var placeholder = '<span id="next-placeholder" class="figure next-placeholder">'
+      +   '<span id="select-next" class="figure-label next">?</span>'
       + '</span>';
     $('.figures').children().last().find('.figure-row-details').append(placeholder);
     
@@ -257,19 +273,28 @@ function addChoices() {
     }
 }
 
-function choose(button, choices) {
-    var figure = new Figure(button.getAttribute('data-value'));
-    var selectNext = $('.figure.placeholder');
-    var btn = $(button);
+function choose(selected, choices) {
+    var figure = new Figure(selected.getAttribute('data-value'));
+    var selectNext = $('#next-placeholder');
     
-    $('[id^=choice]').off('click').removeClass('selectable').removeAttr('id');
+    var selectedId = selected.getAttribute('id');
+    //$('[id^=choice]').off('click').removeClass('selectable').removeAttr('id');
+    $('[id^=choice]').each(function(i) {
+        if ($(this).attr('id') != selectedId) {
+            $(this).addClass('not-selected');
+        }
+        $(this).off('click').removeClass('selectable').removeAttr('id');
+    });
+    
+    
     selectNext.fadeOut();
-
-    btn.fadeOut(function() {
+    $(selected).fadeOut(function() {
         // 3->2 buttons animation
-        var placeholder = $('<span class="figure"></span>');
-        btn.replaceWith(placeholder);
-        placeholder.hide(500).remove();
+        var placeholder = $('<span class="figure blank"></span>');
+        $(selected).replaceWith(placeholder);
+        placeholder.animate({width: 0}, 200, function() {
+            placeholder.remove();
+        });
         
         // replace figure
         var chosen = $(figure.render());
@@ -300,23 +325,29 @@ function choose(button, choices) {
 }
 
 function addInitialFigures() {
+    var initialFigures = [];
     for (var i = 0; i < 3; i++) {
         currentFigure = (i == 0) ? pickOneRandom(allFigures) : pickOneRandom(matchingFigures(allFigures, currentFigure, currentRule));
-        addFigureRow(++currentRound);
-        addFigure(currentFigure);
         currentRule = nextRule(strategy, currentFigure);
+        initialFigures.push(currentFigure);
     }
+    $.each(initialFigures, function(i, figure) {
+        setTimeout(function() {
+            addFigureRow(++currentRound);
+            addFigure(figure);
+        }, 500 * (i + 1));
+    });
+        
 }
 
 function newGame() {
     // show game containers
-    $('.stats').show();
+    $('.stats').slideDown(200, 'linear', {});
     $('.figures').show();
     
     // hide buttons
     $('#button-new-game').hide();
     $('#button-next-level').hide();
-    $('#button-cancel-game').show();
     $('#button-instructions').hide();
     
     // start at level 1
@@ -333,8 +364,8 @@ function initialize() {
     $('#button-cancel-game').hide();
 }
 
-
 function finishGame(won) {
+    $('#button-cancel-game').hide();
     var html = '';
     if (won) {
         html = '<div style="display: inline; color: green">You won!</div>';
@@ -347,7 +378,6 @@ function finishGame(won) {
     
     $('#status-value').html(html);
 }
-
 
 function cancelGame() {
     var btn = $('#button-cancel-game');
@@ -376,6 +406,7 @@ function nextLevel() {
     $('#instructions').hide();
     $('#instructions-carousel').carousel(0); // reset
     $('#button-next-level').hide();
+    $('#button-cancel-game').show();
     
     // set initial values
     $('#tries-left-value').text(attemptsLeft);
@@ -385,8 +416,10 @@ function nextLevel() {
     
     // add first 3 figures, then display choices based on last figure
     addInitialFigures();
-    addFigureRow(++currentRound);
-    addChoices();
+    setTimeout(function() {
+        addFigureRow(++currentRound);
+        addChoices();
+    }, 500 * 4);
 }
 
 // **** execution starts here **** 
