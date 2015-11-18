@@ -14,12 +14,43 @@
   font-family: 'munroregular';
 }
 
+body {
+  background-color: #ECECEC;
+}
+
+.jumbotron {
+  background-color: #404040;
+  padding: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.jumbotron div {
+  display: inline-block;
+  padding-right: 40px;
+  vertical-align: middle;
+}
+
+.jumbotron h1 {
+  color: white;
+  font-size: 4em;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 0 #FF7F23;
+  }
+
+
+/* #FF7F23; - orange */
+/* #ECECEC; - light gray */
+/* #404040; - dark gray */
+/* #000000; - black */
+ 
 /* statusbar styles */
 
 .statusbar {
-  border: 2px solid #193BA0;
-  color: #193BA0;
-  background-color: #B5C2EA;
+  border: 2px solid #FF7F23;
+  color: #ECECEC;
+  background-color: #404040;
   display: block;
   font-size: 14px;
   line-height: 30px;
@@ -102,7 +133,7 @@
 
 .figure-icon {
   display: inline-block;
-  width: 30px;
+  width: 25px;
   text-align: center;
   text-shadow: -1px -1px 0 #000,
                 1px -1px 0 #000,
@@ -123,8 +154,37 @@
   color: green;
 }
 
+.figure-icon.blue {
+  color: blue;
+}
+
+.figure-icon.correct {
+  color: #99E699;
+}
+
+.figure-icon.incorrect {
+  color: #E99696;
+}
+
+.figure-icon.gray {
+  color: gray;
+}
+
+.figure-icon.teal {
+  color: teal;
+}
+
 .figure-icon.yellow {
   color: yellow;
+}
+
+.figure-icon.fa-lozenge-o:before {
+  content: "\f096";
+}
+
+.figure-icon.fa-lozenge-o {
+  transform:  scaleX(0.8) rotate(45deg);
+  font-weight: bolder;
 }
 
 .figure-label {
@@ -132,7 +192,7 @@
   font-size: 1.2em;
   line-height: 30px;
   vertical-align: middle;
-  width: 140px;
+  width: 150px;
 }
 
 .figure-label.next {
@@ -189,4 +249,56 @@
 .figure.incorrect {
   background-color: #E99696;
   border: none;
+}
+
+/* button-bar styles */
+
+.button-bar {
+  text-align: center;
+}
+
+/* instructions styles */
+
+.instructions {
+  font-size: 1.5em;
+}
+
+.instructions .modal-header {
+  background-color: #404040;
+  color: white;
+  -webkit-border-top-left-radius: 4px;
+  -webkit-border-top-right-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+  -moz-border-radius-topright: 4px;
+   border-top-left-radius: 4px;
+   border-top-right-radius: 4px;  
+}
+
+.instructions .modal-content {
+  background-color: #ECECEC;
+}
+
+.instructions .modal-body {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.instructions .carousel-inner {
+  height: 280px;
+  margin: 0px 40px;
+  width: auto;
+}
+
+.instructions .carousel-control {
+  background: none;
+  color: #404040;
+  font-size: 1.3em;
+  line-height: 250px;
+  opacity: 1.0;
+  vertical-align: middle;
+  width: 40px;
+}
+
+.instructions .carousel-control:hover {
+  color: #FF7F23;
 }

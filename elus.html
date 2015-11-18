@@ -18,9 +18,140 @@
 <body>
   <div class="container">
     <div class="jumbotron">
-      <h1>ELUS</h1>
+        <div>
+            <h1>ELUS</h1>
+        </div>
+        <div class="button-bar">
+            <button id="button-new-game" class='btn btn-lg btn-info'>New game</button>
+            <button id="button-next-level" class='btn btn-lg btn-success'>Next level</button>
+            <button id="button-instructions" class='btn btn-lg btn-primary' data-toggle="modal" data-target="#instructions">Instructions</button>
+            <button id="button-cancel-game" class='btn btn-lg btn-warning'>Cancel game</button>
+        </div>
     </div>
 
+    <div id="instructions" class="instructions modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">Instructions</h3>
+                </div>
+                <div class="modal-body">    
+    
+                    <div id="instructions-carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                        <div class="carousel-inner" role="listbox">
+                            <div class="item active">
+                                <p>
+                                    The goal of <b>ELUS</b> is to correctly choose which <b>figure</b> comes next in line.<br>
+                                </p>
+                                <p align="center">
+                                    <span class="fa figure-icon big yellow fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon small yellow fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon big yellow fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon big gray fa-question-circle"></span>
+                                </p>
+                                <p>
+                                    The first 3 figures are laid out for you.
+                                </p>
+                                <p>
+                                    Find the <b>next 5 figures</b> without making more than <b>3 errors</b>.
+                                </p>
+                            </div>
+                            <div class="item">
+                                <p>
+                                    A hidden <b>rule</b> determines which figure comes next...
+                                </p>
+                                <p align="center">
+                                    <span class="fa figure-icon big blue fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon big gray fa-circle-o"></span>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <span class="fa figure-icon big yellow fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon big gray fa-lozenge-o"></span>
+                                </p>
+                                <p>
+                                    ...based on <b>an attribute of the last figure:</b>
+                                </p>
+                                <p align="center">
+                                    Size: <b>Small</b> <span class="fa figure-icon small gray fa-circle-o"></span> or Big <span class="fa figure-icon big gray fa-circle-o"></span>
+                                </p>
+                                <p align="center">
+                                    Color: Blue <span class="fa figure-icon big blue fa-circle-o"></span> or Yellow <span class="fa figure-icon big yellow fa-circle-o"></span>
+                                </p>
+                                <p align="center">
+                                    Shape: Circle <span class="fa figure-icon big gray fa-circle-o"></span> or Lozenge <span class="fa figure-icon big gray fa-lozenge-o"></span>
+                                    
+                                    
+                                </p>
+                                
+                            </div>
+                            <div class="item">
+                                <p>
+                                    In each turn there are always <b>3 choices</b>, but <b>only one is correct</b>, the others do not follow the rule.
+                                </p>
+                                <p align="center">
+                                    <span class="fa figure-icon big blue fa-circle-o"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon small yellow fa-circle-o"></span>
+                                    <span class="fa figure-icon small correct fa-check"></span>
+                                    <span class="fa figure-icon small yellow fa-lozenge-o"></span>
+                                    <span class="fa figure-icon small incorrect fa-close"></span>
+                                    <span class="fa figure-icon big blue fa-circle-o"></span>
+                                    <span class="fa figure-icon small incorrect fa-close"></span>
+                                </p>
+                                <p>
+                                    Whether your choice is right or wrong, the rule will <b>apply to your selection</b> and the next choices will be based on it.
+                                </p>
+                                <p align="center">
+                                    <span class="fa figure-icon small yellow fa-lozenge-o"></span>
+                                    <span class="fa figure-icon small incorrect fa-close"></span>
+                                    <span class="fa figure-icon teal fa-angle-double-right"></span>
+                                    <span class="fa figure-icon big gray fa-question-circle"></span>
+                                </p>
+                            </div>
+                            <div class="item">
+                                <p>
+                                    There are 3 levels of difficulty, with an increasingly complex rule:
+                                    <table style="border: 1px solid black; border-collapse: collapse">
+                                        <tr>
+                                            <th>Level</th><th>Rule</th><th>Example</th>
+                                        </tr>
+                                        <tr>
+                                            <td>1</td>
+                                            <td style="font-size: 0.8em">Always choose the [same/different] attribute</td>
+                                            <td style="font-size: 0.8em; font-style: italic">Always choose the same COLOR</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td style="font-size: 0.8em">If attribute X is [this], choose [this] of attribute Y, otherwise choose the [opposite] of the same attribute</td>
+                                            <td style="font-size: 0.8em">If the last figure is a <b>Circle</b>, choose a <b>Green</b> figure, otherwise choose a <b>Yellow</b> one</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td style="font-size: 0.8em">If attribute X is [this], choose [this] of attribute Y, otherwise choose [that] of attribute Y</td>
+                                            <td style="font-size: 0.8em">If the last figure is a <b>Circle</b>, choose a <b>Green</b> figure, otherwise choose a <b>Yellow</b> one</td>
+                                        </tr>
+                                    </table>
+                                </p>
+                            </div>                            
+                        </div>
+              
+                        <a class="left carousel-control collapse" href="#instructions-carousel" role="button" data-slide="prev">
+                            <span class="fa fa-arrow-left"></span>
+                        </a>
+                        <a class="right carousel-control" href="#instructions-carousel" role="button" data-slide="next">
+                            <span class="fa fa-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="stats">
       <span class="stats-label">Level</span>
       <span class="stats-value">
@@ -46,13 +177,6 @@
     <div id="status-value" class="statusbar">
       <!-- status bar messages will go here -->
     </div>
-    &nbsp;
-    <p class="button-bar">
-      <button id="button-new-game" class='btn btn-lg btn-info'>New game</button>
-      <button id="button-next-level" class='btn btn-lg btn-success'>Next level</button>
-      <button id="button-instructions" class='btn btn-lg btn-primary' data-toggle="modal" data-target="#instructions">Instructions</button>
-      <button id="button-cancel-game" class='btn btn-lg btn-warning'>Cancel game</button>
-    </p>
     
   </div>
 </body>

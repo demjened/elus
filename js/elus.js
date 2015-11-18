@@ -5,8 +5,8 @@
 // TODO: fix wording (choose vs select)
 
 var Size = { 'S': 'Small', 'B': 'Big' }
-var Color = { 'G': 'Green', 'Y': 'Yellow' }
-var Shape = { 'C': 'Circle', 'L': 'Square' }
+var Color = { 'G': 'Blue', 'Y': 'Yellow' }
+var Shape = { 'C': 'Circle', 'L': 'Lozenge' }
 
 var Figure = function(shorthand) {
     this.shorthand = shorthand; // eg. "BYC"
@@ -29,8 +29,8 @@ var Figure = function(shorthand) {
     this.iconClass = function() {
         return 'fa figure-icon'
             + (this.size == 'B' ? ' big' : ' small')
-            + (this.color == 'Y' ? ' yellow' : ' green')
-            + (this.shape == 'C' ? ' fa-circle' : ' fa-square');
+            + (this.color == 'Y' ? ' yellow' : ' blue')
+            + (this.shape == 'C' ? ' fa-circle-o' : ' fa-lozenge-o');
     }
     
     this.render = function(id, clazz) {
