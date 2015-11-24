@@ -14,92 +14,99 @@
   font-family: 'munroregular';
 }
 
+/* #FF7F23; - orange */
+/* #ECECEC; - light gray */
+/* #404040; - dark gray */
+
 body {
   background-color: #ECECEC;
 }
 
-.jumbotron {
+/* header styles */
+
+.header {
   background-color: #404040;
   padding: 20px;
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-.jumbotron div {
+.header div {
   display: inline-block;
   padding-right: 40px;
   vertical-align: middle;
 }
 
-.jumbotron h1 {
+.header h1 {
   color: white;
   font-size: 4em;
   margin-top: 10px;
   margin-bottom: 10px;
   text-shadow: 2px 2px 0 #FF7F23;
-  }
+}
 
+.header .version {
+  color: #ECECEC;
+  float: right;
+  margin-right: -40px;
+}
 
-/* #FF7F23; - orange */
-/* #ECECEC; - light gray */
-/* #404040; - dark gray */
-/* #000000; - black */
- 
+#button-new-game-grp {
+    padding-right: 0px;
+}
+
 /* statusbar styles */
 
 .statusbar {
-  border: 2px solid #FF7F23;
-  color: #ECECEC;
-  background-color: #404040;
-  display: block;
-  font-size: 14px;
-  line-height: 30px;
-  padding: 2px 8px;
+  color: #404040;
+  font-size: 1.5em;
+}
+
+.statusbar-header {
+  color: #FF7F23;
+}
+
+.statusbar-buttons {
+    text-align: center;
 }
 
 /* stats styles */
 
 .stats {
-  background-color: #B5C2EA;
-  border: 2px solid #193BA0;
-  color: #193BA0;
-  display: block;
-  line-height: 24px;
+    float: right;
 }
-
-.stats * {
-  padding: 4px;
-  display: table-cell;
-  vertical-align: middle;
-}
-
 .stats .stats-label {
-  background-color: #193BA0;
-  color: #B5C2EA;
-  font-size: 24px;
-  font-variant: small-caps;
+    background-color: #FF7F23;
+    color: white;
+    width: 160px;
+    padding: 4px;
+    font-size: 24px;
+    text-align: right;
 }
-
 .stats .stats-value {
-  font-size: 30px;
-  padding-left: 8px;
-  padding-right: 8px;
-  white-space: nowrap;
+    color: white;
+    width: 80px;
+    padding: 4px;
+    padding-left: 10px;
+    font-size: 36px;
 }
 
-.stats .fill {
-  width: 100%; /* fill remaining space */
-}
+/* figure styles */
 
-/* figure rows styles */
+.figures {
+    border-top: 8px solid #FF7F23;
+    border-bottom: 8px solid #FF7F23;
+    border-radius: 8px;
+    margin: auto;
+    width: 680px;
+}
 
 .figure-row {
-  background-color: #B5C2EA;
-  border-bottom: 2px solid #193BA0;
-  border-left: 2px solid #193BA0;
-  border-right: 2px solid #193BA0;
-  color: #193BA0;
-  display: block;
+  background-color: #404040;
+  border-bottom: 4px solid #FF7F23;
+  border-left: 2px solid #FF7F23;
+  border-right: 4px solid #FF7F23;
+  color: black;
   line-height: 36px;
 }
 
@@ -108,14 +115,13 @@ body {
 }
 
 .figure-row * {
-  display: table-cell;
+  display: inline-block;
   vertical-align: middle;
 }
 
 .figure-row .figure-row-number {
-  background-color: #193BA0;
-  color: #B5C2EA;
-  display: table-cell;
+  background-color: #FF7F23;
+  color: white;
   font-size: 36px;
   padding: 4px;
   text-align: center;
@@ -174,6 +180,10 @@ body {
   color: teal;
 }
 
+.figure-icon.orange {
+  color: #FF7F23;
+}
+
 .figure-icon.yellow {
   color: yellow;
 }
@@ -196,36 +206,28 @@ body {
 }
 
 .figure-label.next {
+  color: #ECECEC;
   font-size: 1.8em;
   text-align: center;
   width: 30px;
 }
 
-.figure-label.hidden {
-  display: none;
-}
-
 .figure.selectable {
-  background-color: #FFF;
+  background-color: white;
 }
 
 .figure.selectable:hover,
 .figure.selectable:active {
-  border: 2px solid black;
-  background-color: #EEE;
+  border: 2px solid #0098cc;
+  background-color: #66d9ff;
   cursor: pointer;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   transition: all 0.2s;
 }
 
-.figure.selected {
-  background-color: #DDD;
-  border: none;
-}
-
 .figure.not-selected {
-  background-color: #AAA;
-  border: none;
+  background-color: #BBB;
+  border: 2px solid #AAA;
 }
 
 .figure.blank {
@@ -235,8 +237,7 @@ body {
 }
 
 .figure.next-placeholder {
-  background-color: #DDD;
-  border: 2px dashed gray;
+  border: 2px dashed #ECECEC;
   text-align: center;
   width: 60px;
 }
@@ -249,12 +250,6 @@ body {
 .figure.incorrect {
   background-color: #E99696;
   border: none;
-}
-
-/* button-bar styles */
-
-.button-bar {
-  text-align: center;
 }
 
 /* instructions styles */

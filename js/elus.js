@@ -1,14 +1,22 @@
-// TODO: elus namespace
+// TODO: fluid layout
+// TODO: finalize instructions
+// TODO: use SASS
+// TODO: fix method names & wording (eg. choose vs select)
+// TODO: add unit tests
+// TODO: add documentation
 // TODO: separate UI from game logic
-// TODO: documentation
-// TODO: unit tests
-// TODO: fix wording (choose vs select)
+// TODO: add random game mode
 
-var Size = { 'S': 'Small', 'B': 'Big' }
-var Color = { 'G': 'Blue', 'Y': 'Yellow' }
-var Shape = { 'C': 'Circle', 'L': 'Lozenge' }
+// initialize namespace
+var ELUS = ELUS || {
+    version: 0.81,
+};
 
-var Figure = function(shorthand) {
+ELUS.Size = { 'S': 'Small', 'B': 'Big' },
+ELUS.Color = { 'G': 'Blue', 'Y': 'Yellow' },
+ELUS.Shape = { 'C': 'Circle', 'L': 'Lozenge' }
+
+ELUS.Figure = function(shorthand) {
     this.shorthand = shorthand; // eg. "BYC"
     this.size = shorthand.substr(0, 1); // B
     this.color = shorthand.substr(1, 1); // Y
@@ -36,24 +44,13 @@ var Figure = function(shorthand) {
     this.render = function(id, clazz) {
         return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + shorthand + '">'
             +   '<span class="figure-icon ' + this.iconClass() + '"></span>'
-            +   '<span class="figure-label">' + Size[this.size] + " " + Color[this.color] + " " + Shape[this.shape] + '</span>'
+            +   '<span class="figure-label">' + ELUS.Size[this.size] + " " + ELUS.Color[this.color] + " " + ELUS.Shape[this.shape] + '</span>'
             + '</span>';
     }
 }
 
-var Strategy = [
-    /*
-    1st round is simple, there is one variable that either alternates or stays the same, while the other two variables are ALWAYS irrelevant. Examples: always big; or alternating color. The pattern should be easy to see, the only difficulty may arise when in the initial sequence more than one variable follows some pattern, and then you face a choice and all you can do is guess. 
-    
-    2nd round is where one variable is the cause, and the other is the consequence (or cause and effect). This ALWAYS leaves one variable irrelevant. Examples are: if big choose blue, if small choose yellow; if circle, choose same size, if lozenge choose different size. With the first figure you choose you most likely have to guess. Here is a rule that make help to guess right. Let's say you have to choose from these choices: 
-        1. Big blue lozenge 
-        2. Big yellow lozenge 
-        3. Small blue circle 
-    The right choice should have a unique variable that none of the other choices have. Figure 1 has no unique variable (there is another big, or blue or lozenge figure). Figure 2 has a unique color. Figure 3 has unique shape and size. Unless you already see a pattern that rules out figure 3, your best odds are if you choose it. If it proves correct, you know that the consequence is either size or shape, and you should be able to test different patterns and arrive to the correct pattern by now. 
-
-    3rd round works like this: if variable x is this, then y is this, if variable x is the other, than z is this. In other words, one variable is the cause, but it affects different variables (consequence) depending on it's value. An example: if size is big, then shape is circle, if size is small then color is blue. Now you will definitely HAVE to guess with the first choice of figure, do it like in the previous round. It will give you the starting point - (one of) the unique variable(s) of the correct figure among the 3 choices is the consequence, so it cannot be the cause. That's where you turn on your logic to work through the possiblities. 
-    */
-    [           // LEVEL 1 STRATEGIES
+ELUS.Rule = [
+    [           // LEVEL 1 RULES
     '-?c=',     // always choose same color
     '-?s=',     // always choose same size
     '-?h=',     // always choose same shape
@@ -61,14 +58,14 @@ var Strategy = [
     '-?s!',     // always choose different size
     '-?h!'      // always choose different shape
     ], 
-    [           // LEVEL 2 STRATEGIES
+    [           // LEVEL 2 RULES
     'cY?sB:sS', // if the last figure is yellow, choose a big one, if not choose a small one
     'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
     'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
     'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
     'sB?cY:cG' // if the last figure is big, choose a yellow one, if not choose a blue one
     ],
-    [           // LEVEL 3 STRATEGIES
+    [           // LEVEL 3 RULES
     'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
     'cY?hC:hL', // if the last figure is yellow, choose a circle, if not choose a lozenge
     'cG?hC:hL', // if the last figure is blue, choose a circle, if not choose a lozenge
@@ -84,7 +81,7 @@ var Strategy = [
     ]
 ]
 
-function strategyToString(strategy) { // TODO: eliminate duplication
+ELUS.ruleToString = function(strategy) { // TODO: eliminate duplication
     var text = '';
     var i1 = strategy.indexOf('?');
     var i2 = strategy.indexOf(':');
@@ -96,36 +93,36 @@ function strategyToString(strategy) { // TODO: eliminate duplication
     var falseRule = (i2 == -1) ? '' : strategy.substring(i2 + 1);
     
     if (condition == '-') {
-        text = 'Always choose ' + ruleToString(trueRule);
+        text = 'Always choose ' + ELUS.rulePartToString(trueRule);
     } else {
         text = 'If the last figure is ';
         if (conditionToken == 's') { // size
-            text += Size[conditionValue];
+            text += ELUS.Size[conditionValue];
         } else if (conditionToken == 'c') { // color
-            text += Color[conditionValue];
+            text += ELUS.Color[conditionValue];
         } else if (conditionToken == 'h') { // shape
-            text += Shape[conditionValue];
+            text += ELUS.Shape[conditionValue];
         }
-        text += ', then choose ' + ruleToString(trueRule) + ', otherwise choose ' + ruleToString(falseRule);
+        text += ', then choose ' + ELUS.rulePartToString(trueRule) + ', otherwise choose ' + ELUS.rulePartToString(falseRule);
     }
     return text;
 }
 
 
-function ruleToString(rule) { // TODO: eliminate duplication
+ELUS.rulePartToString = function(rule) { // TODO: eliminate duplication
     var attribute = rule.substr(0, 1);
     var operator = rule.substr(1, 1);
 
     if (attribute == 's') { // size
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : Size[operator])) + ' size';
+        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Size[operator])) + ' size';
     } else if (attribute == 'c') { // color
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : Color[operator])) + ' color';
+        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Color[operator])) + ' color';
     } else if (attribute == 'h') { // shape
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : Shape[operator])) + ' shape';
+        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Shape[operator])) + ' shape';
     }
 }
 
-function ruleTooltip(level) {
+ELUS.ruleTooltip = function(level) {
     switch (level) {
         case 1: return "Level 1: Always choose same/different feature";
         case 2: return "Level 2: TODO";
@@ -134,19 +131,17 @@ function ruleTooltip(level) {
 }
 
 
-function generateStrategy(currentLevel) {
-    return pickOneRandom(Strategy[currentLevel - 1]);
-    //return '-?c=';     // always choose same color
-
+ELUS.generateRule = function(currentLevel) {
+    return ELUS.pickOneRandom(ELUS.Rule[currentLevel - 1]);
 }
 
-function generateAllFigures() {
+ELUS.generateAllFigures = function() {
     var figures = [];
    
-    for (var i = 0; i < Object.keys(Size).length; i++) {
-        for (var j = 0; j < Object.keys(Color).length; j++) {
-            for (var k = 0; k < Object.keys(Shape).length; k++) {
-                figures.push(new Figure(Object.keys(Size)[i] + Object.keys(Color)[j] + Object.keys(Shape)[k]));
+    for (var i = 0; i < Object.keys(ELUS.Size).length; i++) {
+        for (var j = 0; j < Object.keys(ELUS.Color).length; j++) {
+            for (var k = 0; k < Object.keys(ELUS.Shape).length; k++) {
+                figures.push(new ELUS.Figure(Object.keys(ELUS.Size)[i] + Object.keys(ELUS.Color)[j] + Object.keys(ELUS.Shape)[k]));
             }
         }
     }
@@ -154,7 +149,7 @@ function generateAllFigures() {
     return figures;
 }
 
-function nextRule(strategy, figure) {
+ELUS.nextRule = function(strategy, figure) {
     var i1 = strategy.indexOf('?');
     var i2 = strategy.indexOf(':');
     var condition = strategy.substring(0, i1);
@@ -175,7 +170,7 @@ function nextRule(strategy, figure) {
     return condition == '-' || sizeCondition == figure.size || colorCondition == figure.color || shapeCondition == figure.shape ? trueRule : falseRule;
 }
 
-function matchingFigures(pool, figure, rule) {
+ELUS.matchingFigures = function(pool, figure, rule) {
     var matching = [];
     var sizeFilter, colorFilter, shapeFilter;
 
@@ -200,7 +195,7 @@ function matchingFigures(pool, figure, rule) {
     return matching;
 }
 
-function indexOf(pool, figure) {
+ELUS.indexOf = function(pool, figure) {
     for (var i = 0; i < pool.length; i++) {
         if (pool[i].shorthand == figure.shorthand) {
             return i;
@@ -209,56 +204,77 @@ function indexOf(pool, figure) {
     return -1;
 }
 
-function nonMatchingFigures(pool, figure, rule) {
-    var matching = matchingFigures(pool, figure, rule);
+ELUS.nonMatchingFigures = function(pool, figure, rule) {
+    var matching = ELUS.matchingFigures(pool, figure, rule);
     return pool.filter(function(item) {
-        return indexOf(matching, item) < 0;
+        return ELUS.indexOf(matching, item) < 0;
     });
 }
 
-function pickOneRandom(pool) {
+ELUS.pickOneRandom = function(pool) {
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function pickNRandom(pool, count) {
+ELUS.pickNRandom = function(pool, count) {
     var picked = [];
     for (var i = 0; i < count; i++) {
-        picked.push(pool.splice(indexOf(pool, pickOneRandom(pool)), 1)[0]);
+        picked.push(pool.splice(ELUS.indexOf(pool, ELUS.pickOneRandom(pool)), 1)[0]);
     }
     return picked;
 }
 
-function nextChoicesShuffled(pool, figure, rule) {
-    return [pickOneRandom(matchingFigures(pool, figure, rule))].concat(pickNRandom(nonMatchingFigures(pool, figure, rule), 2)).sort(function() {
+ELUS.nextChoicesShuffled = function(pool, figure, rule) {
+    return [ELUS.pickOneRandom(ELUS.matchingFigures(pool, figure, rule))].concat(ELUS.pickNRandom(ELUS.nonMatchingFigures(pool, figure, rule), 2)).sort(function() {
        return .5 - Math.random(); 
     });
 }
 
-function isMatching(chosen, pool, previous, rule) {
-    return indexOf(matchingFigures(pool, previous, rule), chosen) >= 0;
+ELUS.isMatching = function(chosen, pool, previous, rule) {
+    return ELUS.indexOf(ELUS.matchingFigures(pool, previous, rule), chosen) >= 0;
 }
 
-function addFigureRow(round) {
+ELUS.addFigureRow = function(round) {
     var newRound = $('<div class="figure-row">'
       +   '<span class="figure-row-number">' + round + '</span>'
-      +   '<span class="figure-row-details"></span>' // figure contents will go here
       + '</div>');
     $('.figures').append(newRound);
+    
+    if (round == 1) {
+        var span = $('<span class="stats">'
+            + '<span class="stats-label">Level</span>'
+            + '<span class="stats-value" id="level-value">' + currentLevel + '</span>'
+            + '</span>');
+        newRound.append(span);
+    } else if (round == 2) {
+        var span = $('<span class="stats">'
+            + '<span class="stats-label">Round</span>'
+            + '<span class="stats-value" id="figures-value">1/8</span>'
+            + '</span>');
+        newRound.append(span);
+    } else if (round == 3) {
+        var span = $('<span class="stats">'
+            + '<span class="stats-label">Errors</span>'
+            + '<span class="stats-value" id="tries-left-value">3</span>'
+            + '</span>');
+        newRound.append(span);
+    }
+    
+    
     $('#figures-value').text(round + '/8');
     newRound.hide().slideDown(500);
 }
 
-function addFigure(figure) {
-    $('.figures').children().last().find('.figure-row-details').append(figure.render(null, 'selected'));
+ELUS.addFigure = function(figure) {
+    $('.figure-row').last().children('.figure-row-number').after(figure.render(null, 'not-selected'));
 }
 
-function addChoices() {
+ELUS.addChoices = function() {
     // get 3 choice buttons based on current figure/rule
-    var choices = nextChoicesShuffled(allFigures, currentFigure, currentRule);
+    var choices = ELUS.nextChoicesShuffled(allFigures, currentFigure, currentRule);
     var placeholder = '<span id="next-placeholder" class="figure next-placeholder">'
       +   '<span id="select-next" class="figure-label next">?</span>'
       + '</span>';
-    $('.figures').children().last().find('.figure-row-details').append(placeholder);
+    $('.figure-row').last().children('.figure-row-number').after(placeholder);
     
     // add 3 choice buttons
     for (var i = 0; i < 3; i++) {
@@ -266,15 +282,15 @@ function addChoices() {
         var choice = $(figure.render('choice' + i, 'selectable'));
             
         choice.click(function() {
-            choose(this, choices);
+            ELUS.choose(this, choices);
         });
         
-        $('.figures').children().last().find('.figure-row-details').append(choice);
+        $('.figure-row').last().children().last().after(choice);
     }
 }
 
-function choose(selected, choices) {
-    var figure = new Figure(selected.getAttribute('data-value'));
+ELUS.choose = function(selected, choices) {
+    var figure = new ELUS.Figure(selected.getAttribute('data-value'));
     var selectNext = $('#next-placeholder');
     
     var selectedId = selected.getAttribute('id');
@@ -299,88 +315,109 @@ function choose(selected, choices) {
         // replace figure
         var chosen = $(figure.render());
         selectNext.replaceWith(chosen);
-        chosen.hide().fadeIn().addClass(isMatching(figure, choices, currentFigure, currentRule) ? 'correct' : 'incorrect').removeAttr('id');
+        chosen.hide().fadeIn().addClass(ELUS.isMatching(figure, choices, currentFigure, currentRule) ? 'correct' : 'incorrect').removeAttr('id');
 
-        if (!isMatching(figure, choices, currentFigure, currentRule)) {
+        if (!ELUS.isMatching(figure, choices, currentFigure, currentRule)) {
             attemptsLeft--;
             var attemptsValue = $('#tries-left-value');
             attemptsValue.fadeOut(function() {
                 attemptsValue.text(attemptsLeft).fadeIn();
             })
-            $('#status-value').text('Incorrect choice - ' + attemptsLeft + ' tries left.');
+            ELUS.changeStatusbarText('Incorrect choice - ' + attemptsLeft + ' tries left.');
         } else {
-            $('#status-value').text('Correct choice!');
+            ELUS.changeStatusbarText('Correct choice!');
         }
     
         // check how many attempts/rounds we have left in the game
         if (++currentRound == 9 || attemptsLeft == 0) {
-            finishGame(attemptsLeft > 0);
+            ELUS.finishLevel(attemptsLeft > 0);
         } else {
             currentFigure = figure;
-            currentRule = nextRule(strategy, figure);
-            addFigureRow(currentRound);
-            addChoices();
+            currentRule = ELUS.nextRule(strategy, figure);
+            ELUS.addFigureRow(currentRound);
+            ELUS.addChoices();
         }
     });
 }
 
-function addInitialFigures() {
+ELUS.addInitialFigures = function() {
     var initialFigures = [];
     for (var i = 0; i < 3; i++) {
-        currentFigure = (i == 0) ? pickOneRandom(allFigures) : pickOneRandom(matchingFigures(allFigures, currentFigure, currentRule));
-        currentRule = nextRule(strategy, currentFigure);
+        currentFigure = (i == 0) ? ELUS.pickOneRandom(allFigures) : ELUS.pickOneRandom(ELUS.matchingFigures(allFigures, currentFigure, currentRule));
+        currentRule = ELUS.nextRule(strategy, currentFigure);
         initialFigures.push(currentFigure);
     }
     $.each(initialFigures, function(i, figure) {
         setTimeout(function() {
-            addFigureRow(++currentRound);
-            addFigure(figure);
-        }, 500 * (i + 1));
+            ELUS.addFigureRow(++currentRound);
+            ELUS.addFigure(figure);
+        }, 500 * i);
     });
         
 }
 
-function newGame() {
+ELUS.newGame = function() {
+    if (currentGameType == 'Random') {
+        ELUS.changeStatusbarText('Sorry, Random game type is not available yet.');
+        return;
+    }
+    
     // show game containers
     $('.stats').slideDown(200, 'linear', {});
     $('.figures').show();
     
     // hide buttons
-    $('#button-new-game').hide();
+    $('#button-new-game-grp').hide();
     $('#button-next-level').hide();
-    $('#button-instructions').hide();
     
     // start at level 1
     currentLevel = 0;
-    nextLevel(++currentLevel);
+    ELUS.nextLevel(++currentLevel);
 }
 
-function initialize() {
+ELUS.initialize = function() {
     $('.stats').hide();
     $('.figures').hide();
-    $('#status-value').text('Welcome to ELUS!');
-    $('#button-new-game').show();
+    ELUS.changeStatusbarText('Welcome to ELUS!', true);
+    $('#button-new-game-grp').show();
     $('#button-instructions').show();
     $('#button-cancel-game').hide();
+    $('#button-finish-game').hide();
+    $('#button-next-level').hide();
 }
 
-function finishGame(won) {
-    $('#button-cancel-game').hide();
+ELUS.finishLevel = function(won) {
     var html = '';
     if (won) {
-        html = '<div style="display: inline; color: green">You won!</div>';
-        $('#button-next-level').show();
+        html = '<span style="display: inline; color: green">You won!</span>';
+        html += ' The rule was: <b>' + ELUS.ruleToString(strategy) + '</b>';
+        
+        if (ELUS.isGameWon()) {
+            html += '<span style="display: inline; color: green">Congratulations, you have won the game!</span>';
+            $('#button-finish-game').show();
+        } else {
+            $('#button-next-level').show();
+        }
     } else {
-        html = '<div style="display: inline; color: red">You lost.</div>';
-        $('#button-new-game').show();
+        html = '<span style="display: inline; color: red">You lost.</span>';
+        html += ' The rule was: <b>' + ELUS.strategyToString(strategy) + '</b>';
+        
+        $('#button-cancel-game').hide();
+        $('#button-new-game-grp').show();
+        $('#button-finish-game').show();        
     }
-    html += ' The strategy was: <b>' + strategyToString(strategy) + '</b>';
-    
-    $('#status-value').html(html);
+    ELUS.changeStatusbarText(html);
 }
 
-function cancelGame() {
-    var btn = $('#button-cancel-game');
+/**
+ * Evaluates if the current game has been won.
+ */
+ELUS.isGameWon = function() {
+    return currentRound == 9 && (currentGameType == "Classic" && currentLevel == 3) || currentGameType == "Random";
+}
+
+ELUS.cancelGame = function(btn) {
+    var btn = $(btn);
     var pressed = btn.attr('pressed');
     if (!pressed) {
         btn.attr('pressed', true);
@@ -390,15 +427,15 @@ function cancelGame() {
             btn.text('Cancel game');
         });
     } else {
-        initialize();
+        ELUS.initialize();
     }
 }
 
-function nextLevel() {
+ELUS.nextLevel = function() {
     currentRound = 0, attemptsLeft = 3;
     
     // generate strategy based on current level
-    strategy = generateStrategy(currentLevel);
+    strategy = ELUS.generateRule(currentLevel);
     
     // clear all containers
     $('.figures').empty();
@@ -411,35 +448,67 @@ function nextLevel() {
     // set initial values
     $('#tries-left-value').text(attemptsLeft);
     $('#level-value').text(currentLevel);
-    $('#rule-value').tooltip({title: ruleTooltip(currentLevel), animation: true}); 
-    $('#status-value').text('Starting level ' + currentLevel + '.');
+    $('#rule-value').tooltip({title: ELUS.ruleTooltip(currentLevel), animation: true}); 
+    ELUS.changeStatusbarText('Starting level ' + currentLevel + '.', true);
     
     // add first 3 figures, then display choices based on last figure
-    addInitialFigures();
+    ELUS.addInitialFigures();
     setTimeout(function() {
-        addFigureRow(++currentRound);
-        addChoices();
-    }, 500 * 4);
+        ELUS.addFigureRow(++currentRound);
+        ELUS.addChoices();
+    }, 500 * 3);
+}
+
+ELUS.changeGameType = function(type) {
+    currentGameType = type;
+    $('#button-new-game').text('New game: ' + type);
+}
+
+ELUS.changeStatusbarText = function(html, withoutFade) {
+    var delay = withoutFade ? 0 : 100;
+    $('.statusbar-message').fadeOut(delay, function() {
+        $(this).html(html).hide().fadeIn(delay);
+    });
 }
 
 // **** execution starts here **** 
 
-var allFigures = generateAllFigures();
-var strategy, currentLevel, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
+var allFigures = ELUS.generateAllFigures();
+var strategy, currentGameType, currentLevel, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
 
 // when document is loaded, start new game
 $(document).ready(function() {
+    ELUS.changeGameType('Classic');
+    
     // "New game" button should start new game
     $('#button-new-game').click(function() {
-       newGame();
+       ELUS.newGame();
+    });
+    
+    // dropdown under "New game"
+    $('#button-new-game-grp .dropdown-menu li').click(function(e) {
+        ELUS.changeGameType($(e.target).text());
+    }).hover(function(e) {
+        var text = '';
+        switch ($(e.target).text()) {
+            case 'Classic':
+                text = 'Classic game: Play 3 consecutive rounds of rules with increasing difficulty.'; break;
+            case "Random":
+                text = 'Random game: Play a round with a randomized rule.'; break;
+        }
+        ELUS.changeStatusbarText(text);
     });
     
     $('#button-next-level').hide().click(function() {
-       nextLevel(++currentLevel);
+       ELUS.nextLevel(++currentLevel);
     });
     
-    $('#button-cancel-game').click(function() {
-       cancelGame();
+    $('#button-cancel-game').click(function(e) {
+       ELUS.cancelGame(e.target);
+    });
+    
+    $('#button-finish-game').click(function(e) {
+       ELUS.cancelGame(e.target);
     });
     
     // "Instructions" button should display instructions
@@ -450,7 +519,7 @@ $(document).ready(function() {
     });
     
     // add instructions modal panel behaviour
-    $('#instructions').on('hidden.bs.modal', function () {
+    $('#instructions').on('hidden.bs.modal', function() {
         $('#instructions-carousel').carousel(0); // reset
     })
     
@@ -473,10 +542,10 @@ $(document).ready(function() {
         } else {
             var rightButton = $('<span class="fa fa-arrow-right"></span>');
             $('#instructions-carousel .right').html(rightButton).attr('data-slide', 'next').off('click');
-
         }
     });
     
-    initialize();
+    $('.version').text('v' + ELUS.version.toFixed(3));
+    
+    ELUS.initialize();
 });
-
