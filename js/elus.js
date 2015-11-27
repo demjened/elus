@@ -1,6 +1,8 @@
 // TODO: fluid layout
+// TODO: select animation
+// TODO: add rule tooltips
 // TODO: finalize instructions
-// TODO: use SASS
+// TODO: add statusbar messages to all buttons
 // TODO: fix method names & wording (eg. choose vs select)
 // TODO: add unit tests
 // TODO: add documentation
@@ -9,7 +11,10 @@
 
 // initialize namespace
 var ELUS = ELUS || {
-    version: 0.81,
+    version: 0.82,
+    statusBarMessage: '',
+    strategy: '',
+    gameType: 'Classic'
 };
 
 ELUS.Size = { 'S': 'Small', 'B': 'Big' },
@@ -81,16 +86,16 @@ ELUS.Rule = [
     ]
 ]
 
-ELUS.ruleToString = function(strategy) { // TODO: eliminate duplication
+ELUS.ruleToString = function(rule) { // TODO: eliminate duplication
     var text = '';
-    var i1 = strategy.indexOf('?');
-    var i2 = strategy.indexOf(':');
-    var condition = strategy.substring(0, i1);
+    var i1 = rule.indexOf('?');
+    var i2 = rule.indexOf(':');
+    var condition = rule.substring(0, i1);
     
     var conditionToken = condition.substr(0, 1);
     var conditionValue = condition.substr(1, 1);
-    var trueRule = (i2 == -1) ? strategy.substring(i1 + 1) : strategy.substring(i1 + 1, i2);
-    var falseRule = (i2 == -1) ? '' : strategy.substring(i2 + 1);
+    var trueRule = (i2 == -1) ? rule.substring(i1 + 1) : rule.substring(i1 + 1, i2);
+    var falseRule = (i2 == -1) ? '' : rule.substring(i2 + 1);
     
     if (condition == '-') {
         text = 'Always choose ' + ELUS.rulePartToString(trueRule);
@@ -129,7 +134,6 @@ ELUS.ruleTooltip = function(level) {
         case 3: return "Level 3: TODO";
     }
 }
-
 
 ELUS.generateRule = function(currentLevel) {
     return ELUS.pickOneRandom(ELUS.Rule[currentLevel - 1]);
@@ -242,7 +246,7 @@ ELUS.addFigureRow = function(round) {
     if (round == 1) {
         var span = $('<span class="stats">'
             + '<span class="stats-label">Level</span>'
-            + '<span class="stats-value" id="level-value">' + currentLevel + '</span>'
+            + '<span class="stats-value" id="level-value" data-toggle="tooltip">' + currentLevel + '</span>'
             + '</span>');
         newRound.append(span);
     } else if (round == 2) {
@@ -264,37 +268,44 @@ ELUS.addFigureRow = function(round) {
     newRound.hide().slideDown(500);
 }
 
+/**
+ * Adds a figure to the last row.
+ */
 ELUS.addFigure = function(figure) {
     $('.figure-row').last().children('.figure-row-number').after(figure.render(null, 'not-selected'));
 }
 
+/**
+ * Adds placeholder and 3 choices to the last row.
+ */
 ELUS.addChoices = function() {
-    // get 3 choice buttons based on current figure/rule
-    var choices = ELUS.nextChoicesShuffled(allFigures, currentFigure, currentRule);
+    // add "?" placeholder to last row
     var placeholder = '<span id="next-placeholder" class="figure next-placeholder">'
       +   '<span id="select-next" class="figure-label next">?</span>'
       + '</span>';
     $('.figure-row').last().children('.figure-row-number').after(placeholder);
     
-    // add 3 choice buttons
+    // get 3 choice buttons based on current figure/rule and add them as choice buttons
+    var choices = ELUS.nextChoicesShuffled(ELUS.allFigures, currentFigure, currentRule);
     for (var i = 0; i < 3; i++) {
         var figure = choices[i];
         var choice = $(figure.render('choice' + i, 'selectable'));
             
         choice.click(function() {
-            ELUS.choose(this, choices);
+            ELUS.selectFigure(this, choices);
         });
         
         $('.figure-row').last().children().last().after(choice);
     }
 }
 
-ELUS.choose = function(selected, choices) {
+/**
+ * Selects a figure to become the next one. Checks if the choice is correct, then replaces the placeholder with it.
+ */
+ELUS.selectFigure = function(selected, choices) {
     var figure = new ELUS.Figure(selected.getAttribute('data-value'));
-    var selectNext = $('#next-placeholder');
     
     var selectedId = selected.getAttribute('id');
-    //$('[id^=choice]').off('click').removeClass('selectable').removeAttr('id');
     $('[id^=choice]').each(function(i) {
         if ($(this).attr('id') != selectedId) {
             $(this).addClass('not-selected');
@@ -303,6 +314,7 @@ ELUS.choose = function(selected, choices) {
     });
     
     
+    var selectNext = $('#next-placeholder');
     selectNext.fadeOut();
     $(selected).fadeOut(function() {
         // 3->2 buttons animation
@@ -313,9 +325,9 @@ ELUS.choose = function(selected, choices) {
         });
         
         // replace figure
-        var chosen = $(figure.render());
-        selectNext.replaceWith(chosen);
-        chosen.hide().fadeIn().addClass(ELUS.isMatching(figure, choices, currentFigure, currentRule) ? 'correct' : 'incorrect').removeAttr('id');
+        var selectedFigure = $(figure.render());
+        selectNext.replaceWith(selectedFigure);
+        selectedFigure.hide().fadeIn().addClass(ELUS.isMatching(figure, choices, currentFigure, currentRule) ? 'correct' : 'incorrect').removeAttr('id');
 
         if (!ELUS.isMatching(figure, choices, currentFigure, currentRule)) {
             attemptsLeft--;
@@ -323,28 +335,31 @@ ELUS.choose = function(selected, choices) {
             attemptsValue.fadeOut(function() {
                 attemptsValue.text(attemptsLeft).fadeIn();
             })
-            ELUS.changeStatusbarText('Incorrect choice - ' + attemptsLeft + ' tries left.');
+            ELUS.changeStatusbarText('Incorrect choice - ' + attemptsLeft + ' tries left.', true);
         } else {
-            ELUS.changeStatusbarText('Correct choice!');
+            ELUS.changeStatusbarText('Correct choice!', true);
         }
     
         // check how many attempts/rounds we have left in the game
-        if (++currentRound == 9 || attemptsLeft == 0) {
+        if (++currentRound == 9 || attemptsLeft == 0) { // won or lost the round
             ELUS.finishLevel(attemptsLeft > 0);
-        } else {
+        } else { // next round
             currentFigure = figure;
-            currentRule = ELUS.nextRule(strategy, figure);
+            currentRule = ELUS.nextRule(ELUS.strategy, figure);
             ELUS.addFigureRow(currentRound);
             ELUS.addChoices();
         }
     });
 }
 
+/**
+ * Adds the initial 3 figures to the game.
+ */
 ELUS.addInitialFigures = function() {
     var initialFigures = [];
     for (var i = 0; i < 3; i++) {
-        currentFigure = (i == 0) ? ELUS.pickOneRandom(allFigures) : ELUS.pickOneRandom(ELUS.matchingFigures(allFigures, currentFigure, currentRule));
-        currentRule = ELUS.nextRule(strategy, currentFigure);
+        currentFigure = (i == 0) ? ELUS.pickOneRandom(ELUS.allFigures) : ELUS.pickOneRandom(ELUS.matchingFigures(ELUS.allFigures, currentFigure, currentRule));
+        currentRule = ELUS.nextRule(ELUS.strategy, currentFigure);
         initialFigures.push(currentFigure);
     }
     $.each(initialFigures, function(i, figure) {
@@ -353,20 +368,19 @@ ELUS.addInitialFigures = function() {
             ELUS.addFigure(figure);
         }, 500 * i);
     });
-        
 }
 
+/**
+ * Starts a new game.
+ */
 ELUS.newGame = function() {
-    if (currentGameType == 'Random') {
+    if (ELUS.gameType == 'Random') {
         ELUS.changeStatusbarText('Sorry, Random game type is not available yet.');
         return;
     }
     
-    // show game containers
-    $('.stats').slideDown(200, 'linear', {});
+    // show game container, hide buttons
     $('.figures').show();
-    
-    // hide buttons
     $('#button-new-game-grp').hide();
     $('#button-next-level').hide();
     
@@ -375,47 +389,52 @@ ELUS.newGame = function() {
     ELUS.nextLevel(++currentLevel);
 }
 
-ELUS.initialize = function() {
-    $('.stats').hide();
+/**
+ * Initializes the game.
+ */
+ELUS.initializeGame = function() {
     $('.figures').hide();
-    ELUS.changeStatusbarText('Welcome to ELUS!', true);
     $('#button-new-game-grp').show();
     $('#button-instructions').show();
     $('#button-cancel-game').hide();
     $('#button-finish-game').hide();
     $('#button-next-level').hide();
+    ELUS.changeStatusbarText('Welcome to ELUS!', true, true);
 }
 
 ELUS.finishLevel = function(won) {
     var html = '';
     if (won) {
-        html = '<span style="display: inline; color: green">You won!</span>';
-        html += ' The rule was: <b>' + ELUS.ruleToString(strategy) + '</b>';
+        html = '<span class="game-won">You won!</span>';
+        html += ' The rule was: <b>' + ELUS.ruleToString(ELUS.strategy) + '</b>';
         
         if (ELUS.isGameWon()) {
-            html += '<span style="display: inline; color: green">Congratulations, you have won the game!</span>';
+            html += '<br><span class="game-completed">Congratulations, you have won the game!</span>';
             $('#button-finish-game').show();
         } else {
             $('#button-next-level').show();
         }
     } else {
-        html = '<span style="display: inline; color: red">You lost.</span>';
-        html += ' The rule was: <b>' + ELUS.strategyToString(strategy) + '</b>';
+        html = '<span class="game-lost">You lost.</span>';
+        html += ' The rule was: <b>' + ELUS.ruleToString(ELUS.strategy) + '</b>';
         
         $('#button-cancel-game').hide();
         $('#button-new-game-grp').show();
         $('#button-finish-game').show();        
     }
-    ELUS.changeStatusbarText(html);
+    ELUS.changeStatusbarText(html, true);
 }
 
 /**
  * Evaluates if the current game has been won.
  */
 ELUS.isGameWon = function() {
-    return currentRound == 9 && (currentGameType == "Classic" && currentLevel == 3) || currentGameType == "Random";
+    return currentRound == 9 && (ELUS.gameType == "Classic" && currentLevel == 3) || ELUS.gameType == "Random";
 }
 
+/**
+ * Cancels the current game after confirmation.
+ */
 ELUS.cancelGame = function(btn) {
     var btn = $(btn);
     var pressed = btn.attr('pressed');
@@ -427,7 +446,7 @@ ELUS.cancelGame = function(btn) {
             btn.text('Cancel game');
         });
     } else {
-        ELUS.initialize();
+        ELUS.initializeGame();
     }
 }
 
@@ -435,7 +454,7 @@ ELUS.nextLevel = function() {
     currentRound = 0, attemptsLeft = 3;
     
     // generate strategy based on current level
-    strategy = ELUS.generateRule(currentLevel);
+    ELUS.strategy = ELUS.generateRule(currentLevel);
     
     // clear all containers
     $('.figures').empty();
@@ -448,8 +467,10 @@ ELUS.nextLevel = function() {
     // set initial values
     $('#tries-left-value').text(attemptsLeft);
     $('#level-value').text(currentLevel);
-    $('#rule-value').tooltip({title: ELUS.ruleTooltip(currentLevel), animation: true}); 
-    ELUS.changeStatusbarText('Starting level ' + currentLevel + '.', true);
+    $('#level-value').attr('title', 'foo');
+    //$('#level-value').tooltip('hide').attr('data-original-title', 'foo').tooltip('fixTitle').tooltip('show');
+    //$('#level-value').tooltip({title: ELUS.ruleTooltip(currentLevel), animation: true}); 
+    ELUS.changeStatusbarText('Starting level ' + currentLevel + '.', true, true);
     
     // add first 3 figures, then display choices based on last figure
     ELUS.addInitialFigures();
@@ -460,92 +481,107 @@ ELUS.nextLevel = function() {
 }
 
 ELUS.changeGameType = function(type) {
-    currentGameType = type;
+    ELUS.gameType = type;
     $('#button-new-game').text('New game: ' + type);
 }
 
-ELUS.changeStatusbarText = function(html, withoutFade) {
+ELUS.changeStatusbarText = function(html, sticky, withoutFade) {
+    if (sticky) {
+        ELUS.statusBarMessage = html;
+    }
+    
     var delay = withoutFade ? 0 : 100;
     $('.statusbar-message').fadeOut(delay, function() {
         $(this).html(html).hide().fadeIn(delay);
     });
 }
 
-// **** execution starts here **** 
+ELUS.resetStatusbarText = function() {
+    ELUS.changeStatusbarText(ELUS.statusBarMessage);
+}
 
-var allFigures = ELUS.generateAllFigures();
-var strategy, currentGameType, currentLevel, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
-
-// when document is loaded, start new game
-$(document).ready(function() {
+ELUS.initialize = function() {
     ELUS.changeGameType('Classic');
     
-    // "New game" button should start new game
+    // set "New game" button to start a new game
     $('#button-new-game').click(function() {
        ELUS.newGame();
-    });
+    }).hover(function() { 
+        ELUS.changeStatusbarText('Start new game.'); 
+    }, ELUS.resetStatusbarText);
     
-    // dropdown under "New game"
+    $('#button-new-game-grp .dropdown-toggle').hover(function() { 
+        ELUS.changeStatusbarText('Change game type.'); 
+    }, ELUS.resetStatusbarText);
+    
+    // set dropdown under "New game" to change the game type
     $('#button-new-game-grp .dropdown-menu li').click(function(e) {
         ELUS.changeGameType($(e.target).text());
     }).hover(function(e) {
         var text = '';
         switch ($(e.target).text()) {
             case 'Classic':
-                text = 'Classic game: Play 3 consecutive rounds of rules with increasing difficulty.'; break;
+                text = '<b>Classic game</b> - Play 3 consecutive rounds of rules with increasing difficulty.'; break;
             case "Random":
-                text = 'Random game: Play a round with a randomized rule.'; break;
+                text = '<b>Random game</b> - Play a round with a randomized rule.'; break;
         }
         ELUS.changeStatusbarText(text);
-    });
+    }, ELUS.resetStatusbarText);
     
+    // set next level button to go to next level
     $('#button-next-level').hide().click(function() {
        ELUS.nextLevel(++currentLevel);
     });
     
-    $('#button-cancel-game').click(function(e) {
+    // set "Cancel game" and "Finish game" buttons to cancel game
+    $('#button-cancel-game, #button-finish-game').click(function(e) {
        ELUS.cancelGame(e.target);
     });
     
-    $('#button-finish-game').click(function(e) {
-       ELUS.cancelGame(e.target);
-    });
-    
-    // "Instructions" button should display instructions
+    // set "Instructions" button to display instructions
     $('#button-instructions').click(function() {
         $('#instructions').slideToggle(200, function() {
-            $('#instructions-carousel').carousel(0); // reset
+            $('#instructions-carousel').carousel(0); // reset carousel
         });
     });
     
-    // add instructions modal panel behaviour
+    // set instructions modal panel behaviour
     $('#instructions').on('hidden.bs.modal', function() {
-        $('#instructions-carousel').carousel(0); // reset
+        $('#instructions-carousel').carousel(0); // reset carousel
     })
     
-    // add instructions carousel behaviour
+    // set instructions carousel behaviour
     $('#instructions-carousel').on('slid.bs.carousel', function() {
         var curSlide = $('#instructions-carousel .item.active');
-        if (curSlide.is( ':first-child' )) {
+        if (curSlide.is(':first-child')) {
             $('#instructions-carousel .left').hide();
         } else {
             $('#instructions-carousel .left').show();
         }
         
-        if (curSlide.is( ':last-child' )) {
+        if (curSlide.is(':last-child')) {
             var rightButton = $('<span class="fa fa-close" data-dismiss="modal"></span>');
             $('#instructions-carousel .right').html(rightButton).removeAttr('data-slide').click(function() {
-                $('#instructions-carousel').carousel(0); // reset
+                $('#instructions-carousel').carousel(0); // reset carousel
             });
-            
-            return;
         } else {
             var rightButton = $('<span class="fa fa-arrow-right"></span>');
             $('#instructions-carousel .right').html(rightButton).attr('data-slide', 'next').off('click');
         }
     });
     
+    // set version label
     $('.version').text('v' + ELUS.version.toFixed(3));
     
+    // initialize game
+    ELUS.initializeGame();
+}
+
+// **** EXECUTION STARTS HERE **** 
+var currentLevel, currentRound, currentFigure, currentRule, attemptsLeft, roundsLeft;
+
+// when document is loaded, start new game
+$(document).ready(function() {
+    ELUS.allFigures = ELUS.generateAllFigures();
     ELUS.initialize();
 });
