@@ -1,4 +1,3 @@
-// TODO: use Rule class
 // TODO: fluid layout
 // TODO: add rule tooltips
 // TODO: finalize instructions
@@ -11,9 +10,9 @@
 
 // initialize namespace
 var ELUS = ELUS || {
-    version: 0.82,
+    version: 0.85,
     statusBarMessage: '',
-    rule: '',
+    rule: {},
     gameType: 'Classic',
     level: 0,
     round: 0,
@@ -26,6 +25,9 @@ ELUS.Size = { 'S': 'Small', 'B': 'Big' },
 ELUS.Color = { 'G': 'Blue', 'Y': 'Yellow' },
 ELUS.Shape = { 'C': 'Circle', 'L': 'Lozenge' }
 
+/**
+ * Class to store and manipulate figures.
+ */
 ELUS.Figure = function(shorthand) {
     this.shorthand = shorthand; // eg. "BYC"
     this.size = shorthand.substr(0, 1); // B
@@ -52,7 +54,7 @@ ELUS.Figure = function(shorthand) {
     }
     
     this.render = function(id, clazz) {
-        return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + shorthand + '">'
+        return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + this.shorthand + '">'
             +   '<span class="figure-icon ' + this.iconClass() + '"></span>'
             +   '<span class="figure-label">' + ELUS.Size[this.size] + " " + ELUS.Color[this.color] + " " + ELUS.Shape[this.shape] + '</span>'
             + '</span>';
@@ -63,70 +65,78 @@ ELUS.Figure = function(shorthand) {
     }
 }
 
-ELUS.Rule = [
-    [           // LEVEL 1 RULES
-    '-?c=',     // always choose same color
-    '-?s=',     // always choose same size
-    '-?h=',     // always choose same shape
-    '-?c!',     // always choose different color
-    '-?s!',     // always choose different size
-    '-?h!'      // always choose different shape
+/**
+ * Class to store and manipulate rules.
+ */
+ELUS.Rule = function(shorthand) {
+    this.shorthand = shorthand;
+
+    var i1 = this.shorthand.indexOf('?');
+    var i2 = this.shorthand.indexOf(':');
+    this.condition = this.shorthand.substring(0, i1);
+    this.trueTemplate = (i2 == -1) ? this.shorthand.substring(i1 + 1) : this.shorthand.substring(i1 + 1, i2);
+    this.falseTemplate = (i2 == -1) ? '' : this.shorthand.substring(i2 + 1);
+
+    this.toString = function() {
+        var conditionToken = this.condition.substr(0, 1);
+        var conditionValue = this.condition.substr(1, 1);
+        
+        if (this.condition == '-') {
+            return 'Always choose figure with {0}'.format(templateToString(this.trueTemplate));
+        } else {
+            var conditionStr = conditionToken == 's' ? ELUS.Size[conditionValue] : conditionToken == 'c' ? ELUS.Color[conditionValue] : ELUS.Shape[conditionValue];
+            return 'If the last figure is {0}, then choose figure with {1}, otherwise choose figure with {2}'.format(conditionStr, templateToString(this.trueTemplate), templateToString(this.falseTemplate));
+        }
+    }
+    
+    function templateToString(template) {
+        var attribute = template.substr(0, 1);
+        var operator = template.substr(1, 1);
+
+        if (attribute == 's') { // size
+            return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Size[operator])) + ' size';
+        } else if (attribute == 'c') { // color
+            return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Color[operator])) + ' color';
+        } else if (attribute == 'h') { // shape
+            return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Shape[operator])) + ' shape';
+        }
+    }
+}
+
+/**
+ * Classic game rules by level, expressed by their shorthands.
+ */
+ELUS.ClassicRules = [
+    [               // LEVEL 1 RULES
+        '-?c=',     // always choose same color
+        '-?s=',     // always choose same size
+        '-?h=',     // always choose same shape
+        '-?c!',     // always choose different color
+        '-?s!',     // always choose different size
+        '-?h!'      // always choose different shape
     ], 
-    [           // LEVEL 2 RULES
-    'cY?sB:sS', // if the last figure is yellow, choose a big one, if not choose a small one
-    'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
-    'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
-    'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
-    'sB?cY:cG' // if the last figure is big, choose a yellow one, if not choose a blue one
+    [               // LEVEL 2 RULES
+        'cY?sB:sS', // if the last figure is yellow, choose a big one, if not choose a small one
+        'hC?cG:cY', // if the last figure is a circle, choose a blue figure, if not choose a yellow one
+        'hC?sS:sB', // if the last figure is a circle, choose a small one, if not choose a big one
+        'sB?hC:hL', // if the last figure is big, choose a circle, if not choose a lozenge
+        'sB?cY:cG'  // if the last figure is big, choose a yellow one, if not choose a blue one
     ],
-    [           // LEVEL 3 RULES
-    'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
-    'cY?hC:hL', // if the last figure is yellow, choose a circle, if not choose a lozenge
-    'cG?hC:hL', // if the last figure is blue, choose a circle, if not choose a lozenge
-    'cG?sB:h!', // if the last figure is blue, choose a big figure, if not choose a different type
-    'cG?sB:hC', // if the last figure is blue, choose a big figure, if not choose a circle
-    'hC?cY:sS', // if the last figure is a circle, choose a yellow one, if not choose a small one
-    'sB?hL:cG', // if the last figure is big, choose a lozenge, if not choose a blue one
-    'sB?hC:c=', // if the last figure is big, choose a circle, if not choose one of the same color
-    'sB?cY:hL', // if the last figure is big, choose a yellow one, if not choose a lozenge
-    'sB?cG:cY', // if the last figure is big, choose a blue one, if not choose a yellow one
-    'sB?cG:h=', // if the last figure is big, choose a blue one, if not choose one of the same type
-    'sB?cG:c!'  // if the last figure is big, choose a blue one, if not choose one of another color
+    [               // LEVEL 3 RULES
+        'hL?cG:s=', // if the last figure is a lozenge, choose a blue one, if not choose one of the same size
+        'cY?hC:hL', // if the last figure is yellow, choose a circle, if not choose a lozenge
+        'cG?hC:hL', // if the last figure is blue, choose a circle, if not choose a lozenge
+        'cG?sB:h!', // if the last figure is blue, choose a big figure, if not choose a different type
+        'cG?sB:hC', // if the last figure is blue, choose a big figure, if not choose a circle
+        'hC?cY:sS', // if the last figure is a circle, choose a yellow one, if not choose a small one
+        'sB?hL:cG', // if the last figure is big, choose a lozenge, if not choose a blue one
+        'sB?hC:c=', // if the last figure is big, choose a circle, if not choose one of the same color
+        'sB?cY:hL', // if the last figure is big, choose a yellow one, if not choose a lozenge
+        'sB?cG:cY', // if the last figure is big, choose a blue one, if not choose a yellow one
+        'sB?cG:h=', // if the last figure is big, choose a blue one, if not choose one of the same type
+        'sB?cG:c!'  // if the last figure is big, choose a blue one, if not choose one of another color
     ]
 ]
-
-ELUS.ruleToString = function(rule) { // TODO: eliminate duplication
-    var text = '';
-    var i1 = rule.indexOf('?');
-    var i2 = rule.indexOf(':');
-    var condition = rule.substring(0, i1);
-    
-    var conditionToken = condition.substr(0, 1);
-    var conditionValue = condition.substr(1, 1);
-    var trueTemplate = (i2 == -1) ? rule.substring(i1 + 1) : rule.substring(i1 + 1, i2);
-    var falseTemplate = (i2 == -1) ? '' : rule.substring(i2 + 1);
-    
-    if (condition == '-') {
-        return 'Always choose figure with {0}'.format(ELUS.rulePartToString(trueTemplate));
-    } else {
-        var conditionStr = conditionToken == 's' ? ELUS.Size[conditionValue] : conditionToken == 'c' ? ELUS.Color[conditionValue] : ELUS.Shape[conditionValue];
-        return 'If the last figure is {0}, then choose figure with {1}, otherwise choose figure with {2}'.format(conditionStr, ELUS.rulePartToString(trueTemplate), ELUS.rulePartToString(falseTemplate));
-    }
-    return text;
-}
-
-ELUS.rulePartToString = function(rulePart) {
-    var attribute = rulePart.substr(0, 1);
-    var operator = rulePart.substr(1, 1);
-
-    if (attribute == 's') { // size
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Size[operator])) + ' size';
-    } else if (attribute == 'c') { // color
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Color[operator])) + ' color';
-    } else if (attribute == 'h') { // shape
-        return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Shape[operator])) + ' shape';
-    }
-}
 
 ELUS.ruleTooltip = function(level) {
     switch (level) {
@@ -136,10 +146,17 @@ ELUS.ruleTooltip = function(level) {
     }
 }
 
-ELUS.generateRule = function(level) {
-    return ELUS.getRandomElement(ELUS.Rule[level - 1]);
+/**
+ * Generates a rule based on the current game type and level.
+ */
+ELUS.generateRule = function(gameType, level) {
+    // TODO: implement gameType = 'Random'
+    return new ELUS.Rule(ELUS.getRandomElement(ELUS.ClassicRules[level - 1]));
 }
 
+/**
+ * Generates all (8) possible figure combinations to fill the initial figure pool.
+ */
 ELUS.generateAllFigures = function() {
     var figures = [];
    
@@ -154,16 +171,13 @@ ELUS.generateAllFigures = function() {
     return figures;
 }
 
+/**
+ * Applies the given rule on the given figure to gets the next figure template string, eg. "cY".
+ */
 ELUS.getNextFigureTemplate = function(rule, figure) {
-    var i1 = rule.indexOf('?');
-    var i2 = rule.indexOf(':');
-    var condition = rule.substring(0, i1);
-    var trueTemplate = (i2 == -1) ? rule.substring(i1 + 1) : rule.substring(i1 + 1, i2);
-    var falseTemplate = (i2 == -1) ? '' : rule.substring(i2 + 1);
-    
     var sizeCondition, colorCondition, shapeCondition;
-    var conditionToken = condition.substr(0, 1);
-    var conditionValue = condition.substr(1, 1);
+    var conditionToken = rule.condition.substr(0, 1);
+    var conditionValue = rule.condition.substr(1, 1);
     if (conditionToken == 's') { // size
         sizeCondition = conditionValue;
     } else if (conditionToken == 'c') { // color
@@ -172,7 +186,8 @@ ELUS.getNextFigureTemplate = function(rule, figure) {
         shapeCondition = conditionValue;
     }
     
-    return condition == '-' || sizeCondition == figure.size || colorCondition == figure.color || shapeCondition == figure.shape ? trueTemplate : falseTemplate;
+    // the next template is the rule's "true" template if a) the rule has no condition, or b) the condition matches the figure's relevant attribute; otherwise it's the "false" template
+    return rule.condition == '-' || sizeCondition == figure.size || colorCondition == figure.color || shapeCondition == figure.shape ? rule.trueTemplate : rule.falseTemplate;
 }
 
 ELUS.getMatchingFigures = function(pool, figure, template) {
@@ -413,7 +428,7 @@ ELUS.finishLevel = function(won) {
     var html = '';
     if (won) {
         html = '<span class="game-won">You won!</span>';
-        html += ' The rule was: <b>' + ELUS.ruleToString(ELUS.rule) + '</b>';
+        html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>';
         
         if (ELUS.isGameWon()) {
             html += '<br><span class="game-completed">Congratulations, you have won the game!</span>';
@@ -423,7 +438,7 @@ ELUS.finishLevel = function(won) {
         }
     } else {
         html = '<span class="game-lost">You lost.</span>';
-        html += ' The rule was: <b>' + ELUS.ruleToString(ELUS.rule) + '</b>';
+        html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>';
         
         $('#button-cancel-game').hide();
         $('#button-new-game-grp').show();
@@ -458,11 +473,10 @@ ELUS.cancelGame = function(btn) {
 }
 
 ELUS.nextLevel = function() {
-    ELUS.level++;
-    ELUS.round = 0, ELUS.errorsLeft = 3;
+    ELUS.level++, ELUS.round = 0, ELUS.errorsLeft = 3;
     
-    // generate strategy based on current level
-    ELUS.rule = ELUS.generateRule(ELUS.level);
+    // generate rule
+    ELUS.rule = ELUS.generateRule(ELUS.gameType, ELUS.level);
     
     // clear all containers
     $('.figures').empty();
@@ -486,9 +500,9 @@ ELUS.nextLevel = function() {
     }, 500 * 3);
 }
 
-ELUS.changeGameType = function(type) {
-    ELUS.gameType = type;
-    $('#button-new-game').text('New game: ' + type);
+ELUS.changeGameType = function(gameType) {
+    ELUS.gameType = gameType;
+    $('#button-new-game').text('New game: ' + gameType);
 }
 
 ELUS.changeStatusbarText = function(html, sticky, withoutFade) {
@@ -585,8 +599,8 @@ ELUS.initialize = function() {
 
 String.prototype.format = function() {
     var formatted = this;
-    for( var arg in arguments ) {
-        formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+    for (var arg in arguments) {
+        formatted = formatted.replace('{' + arg + '}', arguments[arg]);
     }
     return formatted;
 };
