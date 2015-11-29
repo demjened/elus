@@ -42,6 +42,12 @@ body {
   margin-right: -40px;
 }
 
+@media screen and (max-width: 960px) {
+  .header .version {
+    margin-right: 0px;
+  }
+}
+
 #button-new-game-grp {
   padding-right: 0px;
 }
@@ -84,10 +90,17 @@ body {
 .stats .stats-label {
   background-color: #FF7F23;
   color: white;
+  font-size: 2em;
   width: 160px;
   padding: 4px;
-  font-size: 24px;
   text-align: right;
+}
+
+@media screen and (max-width: 960px) {
+  .stats .stats-label {
+    font-size: 1.5em;
+    width: 80px;
+  }
 }
 
 .stats .stats-value {
@@ -95,7 +108,14 @@ body {
   width: 80px;
   padding: 4px;
   padding-left: 10px;
-  font-size: 36px;
+  font-size: 2.5em;
+}
+
+@media screen and (max-width: 960px) {
+  .stats .stats-value {
+    font-size: 2em;
+    width: 60px;
+  }
 }
 
 /* figure styles */
@@ -103,8 +123,14 @@ body {
   border-top: 8px solid #FF7F23;
   border-bottom: 8px solid #FF7F23;
   border-radius: 8px;
-  margin: auto;
+  margin: 0px auto 4px auto;
   width: 680px;
+}
+
+@media screen and (max-width: 960px) {
+  .figures {
+    width: 360px;
+  }
 }
 
 .figure-row {
@@ -116,19 +142,25 @@ body {
   line-height: 36px;
 }
 
+@media screen and (max-width: 960px) {
+  .figure-row {
+    line-height: 72px;
+  }
+}
+
 .figure-row * {
   display: inline-block;
   vertical-align: middle;
 }
 
-.figure-row :last-child {
+.figure-row:last-child {
   border-bottom: none;
 }
 
 .figure-row .figure-row-number {
   background-color: #FF7F23;
   color: white;
-  font-size: 36px;
+  font-size: 2.5em;
   padding: 4px;
   text-align: center;
   width: 26px;
@@ -139,20 +171,54 @@ body {
   border: 2px solid gray;
   border-radius: 8px 4px;
   display: inline-block;
+  height: 38px;
   margin-left: 4px;
+  width: 190px;
+  position: relative;
+}
+
+@media screen and (max-width: 960px) {
+  .figure {
+    height: 72px;
+    width: 80px;
+  }
+}
+
+.figure .figure-icon {
+  float: left;
+  line-height: 36px;
+  vertical-align: middle;
+  width: 30px;
+}
+
+@media screen and (max-width: 960px) {
+  .figure .figure-icon {
+    line-height: 72px;
+    width: 26px;
+  }
 }
 
 .figure .figure-label {
   display: inline-block;
   font-size: 1.2em;
-  line-height: 30px;
+  float: left;
+  line-height: 36px;
   vertical-align: middle;
   width: 150px;
+}
+
+@media screen and (max-width: 960px) {
+  .figure .figure-label {
+    font-size: 1em;
+    line-height: 24px;
+    width: 0px;
+  }
 }
 
 .figure .figure-label.next {
   color: #ECECEC;
   font-size: 1.8em;
+  float: none;
   text-align: center;
   width: 30px;
 }
@@ -188,12 +254,12 @@ body {
 
 .figure.correct {
   background-color: #99E699;
-  border: none;
+  border-color: green;
 }
 
 .figure.incorrect {
   background-color: #E99696;
-  border: none;
+  border-color: red;
 }
 
 .figure-icon {

@@ -1,6 +1,5 @@
 // TODO: use Rule class
 // TODO: fluid layout
-// TODO: select animation
 // TODO: add rule tooltips
 // TODO: finalize instructions
 // TODO: add statusbar messages to all buttons
@@ -235,8 +234,8 @@ ELUS.getNextChoicesShuffled = function(pool, figure, template) {
     });
 }
 
-ELUS.isMatching = function(chosen, pool, previous, template) {
-    return ELUS.indexOfFigure(ELUS.getMatchingFigures(pool, previous, template), chosen) >= 0;
+ELUS.isCorrectFigure = function(pool, figure, previous, template) {
+    return ELUS.indexOfFigure(ELUS.getMatchingFigures(pool, previous, template), figure) >= 0;
 }
 
 ELUS.addFigureRow = function(round) {
@@ -283,7 +282,7 @@ ELUS.addFigure = function(figure) {
 ELUS.addChoices = function() {
     // add "?" placeholder to last row
     var placeholder = '<span id="next-placeholder" class="figure next-placeholder">'
-      +   '<span id="select-next" class="figure-label next">?</span>'
+      +   '<span class="figure-label next">?</span>'
       + '</span>';
     $('.figure-row').last().children('.figure-row-number').after(placeholder);
     
@@ -302,56 +301,62 @@ ELUS.addChoices = function() {
 }
 
 /**
- * Selects a figure to become the next one. Checks if the choice is correct, then replaces the placeholder with it.
+ * Selects a figure. Evaluates whether the choice is correct, then replaces the "?" placeholder with it.
  */
 ELUS.selectFigure = function(selected, choices) {
-    var figure = new ELUS.Figure(selected.getAttribute('data-value'));
-    
+    var selectedFigure = new ELUS.Figure(selected.getAttribute('data-value'));
     var selectedId = selected.getAttribute('id');
+    var isCorrect = ELUS.isCorrectFigure(choices, selectedFigure, ELUS.lastFigure, ELUS.nextFigureTemplate);
+    
+    // add appropriate class to each figure choice button and remove selectability
     $('[id^=choice]').each(function(i) {
-        if ($(this).attr('id') != selectedId) {
-            $(this).addClass('not-selected');
-        }
-        $(this).off('click').removeClass('selectable').removeAttr('id');
+        $(this).removeClass('selectable')
+            .addClass($(this).attr('id') == selectedId ? (isCorrect ? 'correct' : 'incorrect') : 'not-selected')
+            .off('click');
     });
     
-    
+    // replace "?" placeholder with selected figure via sliding animation
     var selectNext = $('#next-placeholder');
-    selectNext.fadeOut();
-    $(selected).fadeOut(function() {
-        // 3->2 buttons animation
-        var placeholder = $('<span class="figure blank"></span>');
-        $(selected).replaceWith(placeholder);
-        placeholder.animate({width: 0}, 200, function() {
-            placeholder.remove();
+    selectNext.animate({ opacity: 0 }, 200, function() { // fade out but keep width
+        var selectedIndex = parseInt(selectedId.substr(-1));
+        var selectNextWidth = selectNext.outerWidth() + 4, figureWidth = $('#choice0').outerWidth() + 4;
+        var offsets = []; // offsets to slide each figure by
+        offsets.push((selectedIndex == 0 ? 0 : figureWidth) - selectNextWidth);
+        offsets.push((selectedIndex == 0 ? 0 : selectedIndex == 1 ? -1 * figureWidth : figureWidth) - selectNextWidth);
+        offsets.push((selectedIndex != 2 ? 0 : -2 * figureWidth) - selectNextWidth);
+        
+        // slide all figures at the same time
+        $('[id^=choice]').each(function(i) {
+            $(this).removeAttr('id').animate({ left: offsets[i] }, 500);
         });
         
-        // replace figure
-        var selectedFigure = $(figure.render());
-        selectNext.replaceWith(selectedFigure);
-        selectedFigure.hide().fadeIn().addClass(ELUS.isMatching(figure, choices, ELUS.lastFigure, ELUS.nextFigureTemplate) ? 'correct' : 'incorrect').removeAttr('id');
+        selectNext.removeAttr('id');
+        
+        // TODO: fix DOM after sliding
+    });
 
-        if (!ELUS.isMatching(figure, choices, ELUS.lastFigure, ELUS.nextFigureTemplate)) {
+    // apply changes based on selection (display statusbar text, move to next round or finish game)
+    setTimeout(function() {
+        if (!isCorrect) {
             ELUS.errorsLeft--;
-            var attemptsValue = $('#tries-left-value');
-            attemptsValue.fadeOut(function() {
-                attemptsValue.text(ELUS.errorsLeft).fadeIn();
-            })
+            $('#tries-left-value').fadeOut(200, function() {
+                $(this).text(ELUS.errorsLeft).fadeIn();
+            });
             ELUS.changeStatusbarText('Incorrect choice - ' + ELUS.errorsLeft + ' tries left.', true);
         } else {
             ELUS.changeStatusbarText('Correct choice!', true);
         }
-    
+
         // check how many attempts/rounds we have left in the game
         if (++ELUS.round == 9 || ELUS.errorsLeft == 0) { // won or lost the round
             ELUS.finishLevel(ELUS.errorsLeft > 0);
         } else { // next round
-            ELUS.lastFigure = figure;
-            ELUS.nextFigureTemplate = ELUS.getNextFigureTemplate(ELUS.rule, figure);
+            ELUS.lastFigure = selectedFigure;
+            ELUS.nextFigureTemplate = ELUS.getNextFigureTemplate(ELUS.rule, ELUS.lastFigure);
             ELUS.addFigureRow(ELUS.round);
             ELUS.addChoices();
         }
-    });
+    }, 700);
 }
 
 /**

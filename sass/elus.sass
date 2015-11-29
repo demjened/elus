@@ -108,7 +108,7 @@ body
     border-top: 8px solid $colorHighlight1
     border-bottom: 8px solid $colorHighlight1
     border-radius: 8px
-    margin: auto
+    margin: 0px auto 4px auto
     width: 680px
     
     @media screen and (max-width: $breakPointSmall)
@@ -129,7 +129,7 @@ body
         display: inline-block
         vertical-align: middle
 
-    :last-child
+    &:last-child
         border-bottom: none
 
     .figure-row-number
@@ -149,6 +149,7 @@ body
     height: 38px
     margin-left: 4px
     width: 190px
+    position: relative;
 
     @media screen and (max-width: $breakPointSmall)
         height: 72px
@@ -210,11 +211,11 @@ body
 
     &.correct
         background-color: #99E699
-        border: none
+        border-color: green
 
     &.incorrect
         background-color: #E99696
-        border: none
+        border-color: red
             
 .figure-icon
     display: inline-block
