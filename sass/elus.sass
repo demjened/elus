@@ -3,6 +3,7 @@ $colorHighlight2: white
 $colorBackground1: #ECECEC
 $colorBackground2: #404040
 $figureIconColors: green blue teal orange yellow gray
+$breakPointSmall: 960px // 360px
 
 @font-face
     font-family: 'munroregular'
@@ -41,6 +42,9 @@ body
         color: $colorBackground1
         float: right
         margin-right: -40px
+        
+        @media screen and (max-width: $breakPointSmall)
+            margin-right: 0px
 
 #button-new-game-grp
     padding-right: 0px
@@ -78,18 +82,26 @@ body
     .stats-label
         background-color: $colorHighlight1
         color: $colorHighlight2
+        font-size: 2em
         width: 160px
         padding: 4px
-        font-size: 24px
         text-align: right
 
+        @media screen and (max-width: $breakPointSmall)
+            font-size: 1.5em
+            width: 80px
+        
     .stats-value
         color: $colorHighlight2
         width: 80px
         padding: 4px
         padding-left: 10px
-        font-size: 36px
+        font-size: 2.5em
 
+        @media screen and (max-width: $breakPointSmall)
+            font-size: 2em
+            width: 60px
+        
 /* figure styles */
 
 .figures
@@ -98,6 +110,9 @@ body
     border-radius: 8px
     margin: auto
     width: 680px
+    
+    @media screen and (max-width: $breakPointSmall)
+        width: 360px
 
 .figure-row
     background-color: $colorBackground2
@@ -106,6 +121,9 @@ body
     border-right: 4px solid $colorHighlight1
     color: black
     line-height: 36px
+
+    @media screen and (max-width: $breakPointSmall)
+        line-height: 72px
 
     *
         display: inline-block
@@ -117,7 +135,7 @@ body
     .figure-row-number
         background-color: $colorHighlight1
         color: $colorHighlight2
-        font-size: 36px
+        font-size: 2.5em
         padding: 4px
         text-align: center
         width: 26px
@@ -128,18 +146,41 @@ body
     border: 2px solid gray
     border-radius: 8px 4px
     display: inline-block
+    height: 38px
     margin-left: 4px
+    width: 190px
 
+    @media screen and (max-width: $breakPointSmall)
+        height: 72px
+        width: 80px
+
+    .figure-icon
+        float: left
+        line-height: 36px
+        vertical-align: middle
+        width: 30px
+        
+        @media screen and (max-width: $breakPointSmall)
+            line-height: 72px
+            width: 26px
+    
     .figure-label
         display: inline-block
         font-size: 1.2em
-        line-height: 30px
+        float: left
+        line-height: 36px
         vertical-align: middle
         width: 150px
 
+        @media screen and (max-width: $breakPointSmall)
+            font-size: 1em
+            line-height: 24px
+            width: 0px
+        
         &.next
             color: #ECECEC
             font-size: 1.8em
+            float: none
             text-align: center
             width: 30px
 
