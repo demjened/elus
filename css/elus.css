@@ -62,20 +62,20 @@ body {
   display: inline;
 }
 
-.statusbar .game-won {
+.statusbar .statusbar-header {
+  color: #FF7F23;
+}
+
+.statusbar .statusbar-message .green {
   color: green;
 }
 
-.statusbar .game-lost {
-  color: red;
-}
-
-.statusbar .game-completed {
+.statusbar .statusbar-message .teal {
   color: teal;
 }
 
-.statusbar .statusbar-header {
-  color: #FF7F23;
+.statusbar .statusbar-message .red {
+  color: red;
 }
 
 .statusbar-buttons {
@@ -164,6 +164,13 @@ body {
   padding: 4px;
   text-align: center;
   width: 26px;
+}
+
+.figure-row .tooltip-inner {
+  background-color: #404040;
+  color: white;
+  font-size: 1.2em;
+  max-width: 300px;
 }
 
 /* figure styles */
@@ -330,8 +337,9 @@ body {
 }
 
 .instructions .carousel-inner {
-  height: 280px;
+  height: 200px;
   margin: 0px 40px;
+  text-align: center;
   width: auto;
 }
 
@@ -339,7 +347,7 @@ body {
   background: none;
   color: #404040;
   font-size: 1.3em;
-  line-height: 250px;
+  line-height: 200px;
   opacity: 1.0;
   vertical-align: middle;
   width: 40px;
@@ -349,8 +357,22 @@ body {
   color: #FF7F23;
 }
 
-.instructions .figure-icon {
-  margin-left: -4px;
+.instructions table {
+  margin: auto;
+  width: 300px;
+}
+
+.instructions table tr {
+  height: 40px;
+}
+
+.instructions table td {
+  text-align: left;
+}
+
+.instructions table td:first-of-type {
+  text-align: right;
+  padding-right: 20px;
 }
 
 .modal-header {

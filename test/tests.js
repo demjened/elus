@@ -1,5 +1,18 @@
 var randomTestCount = 100;
 
+QUnit.test('ELUS.Figure test', function(assert) {
+    var figure = new ELUS.Figure('SYL');
+    assert.ok(figure.size == 'S');
+    assert.ok(figure.color == 'Y');
+    assert.ok(figure.shape == 'L');
+    assert.ok(figure.oppositeSize() == 'B');
+    assert.ok(figure.oppositeColor() == 'G');
+    assert.ok(figure.oppositeShape() == 'C');
+    
+    assert.ok(figure.equals(new ELUS.Figure('SYL')));
+    assert.notOk(figure.equals(new ELUS.Figure('BYC')));
+});
+
 QUnit.test('ELUS.Rule test', function(assert) {
     var rule1 = new ELUS.Rule('-?c=');
     assert.ok(rule1.condition == '-');
@@ -40,11 +53,26 @@ QUnit.test('ELUS.getNRandomElements() test', function(assert) {
     });
 });
 
-// TODO: rulePartToString
-// TODO: generateAllFigures
-// TODO: getNextFigureTemplate
+QUnit.test('ELUS.generateAllFigures() test', function(assert) {
+    var allFigureShorthands = ['SYL', 'SGL', 'SYC', 'SGC', 'BYL', 'BGL', 'BYC', 'BGC'];
+    var generatedFigureShorthands = ELUS.generateAllFigures().map(function(figure) { 
+        return figure.shorthand; 
+    });
+    assert.ok(generatedFigureShorthands.length == allFigureShorthands.length);
+    assert.ok(allFigureShorthands.every(element => generatedFigureShorthands.indexOf(element) >= 0));
+});
+
+QUnit.test('ELUS.getNextFigureTemplate() test', function(assert) {
+    var figure = new ELUS.Figure('SGC');
+    assert.ok(ELUS.getNextFigureTemplate(new ELUS.Rule('-?c='), figure) == 'c=');
+    assert.ok(ELUS.getNextFigureTemplate(new ELUS.Rule('-?c!'), figure) == 'c!');
+    assert.ok(ELUS.getNextFigureTemplate(new ELUS.Rule('hL?cG:s='), figure) == 's=');
+    assert.ok(ELUS.getNextFigureTemplate(new ELUS.Rule('cG?sB:hC'), figure) == 'sB');
+    assert.ok(ELUS.getNextFigureTemplate(new ELUS.Rule('sB?hC:hL'), figure) == 'hL');
+});
+
 // TODO: getMatchingFigures
 // TODO: getNonMatchingFigures
-// TODO: indexOfFigure
 // TODO: getNextChoicesShuffled
-// TODO: isMatching
+// TODO: indexOfFigure
+// TODO: isCorrectFigure

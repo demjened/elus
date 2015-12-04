@@ -1,72 +1,102 @@
 // TODO: fluid layout
 // TODO: add rule tooltips
-// TODO: finalize instructions
-// TODO: add statusbar messages to all buttons
-// TODO: fix method names & wording (eg. choose vs select)
 // TODO: add unit tests
-// TODO: add documentation
 // TODO: separate UI from game logic
 // TODO: add random game mode
 
 // initialize namespace
 var ELUS = ELUS || {
-    version: 0.85,
+    version: 0.90,
     statusBarMessage: '',
     rule: {},
+    ruleHint: '',
     gameType: 'Classic',
     level: 0,
     round: 0,
     errorsLeft: 0,
     lastFigure: '',
     nextFigureTemplate: ''
-};
+}
 
-ELUS.Size = { 'S': 'Small', 'B': 'Big' },
-ELUS.Color = { 'G': 'Blue', 'Y': 'Yellow' },
+// initialize type classes
+ELUS.Size  = { 'S': 'Small', 'B': 'Big' }
+ELUS.Color = { 'G': 'Blue', 'Y': 'Yellow' }
 ELUS.Shape = { 'C': 'Circle', 'L': 'Lozenge' }
 
 /**
  * Class to store and manipulate figures.
+ *
+ * @param {String} shorthand - the shorthand of the figure, eg. "BYC" (= Big Yellow Circle)
+ * @returns {ELUS.Figure}
  */
 ELUS.Figure = function(shorthand) {
-    this.shorthand = shorthand; // eg. "BYC"
-    this.size = shorthand.substr(0, 1); // B
+    this.shorthand = shorthand;
+    this.size = shorthand.substr(0, 1);  // B
     this.color = shorthand.substr(1, 1); // Y
     this.shape = shorthand.substr(2, 1); // C
     
-    this.reverseSize = function() {
+    /**
+     * Returns the opposite of this figure's size.
+     *
+     * @return {String}
+     */
+    this.oppositeSize = function() {
         return this.size == 'B' ? 'S' : 'B';
     }
     
-    this.reverseColor = function() {
+    /**
+     * Returns the opposite of this figure's color.
+     *
+     * @return {String}
+     */
+    this.oppositeColor = function() {
         return this.color == 'G' ? 'Y' : 'G';
     }
     
-    this.reverseShape = function() {
+    /**
+     * Returns the opposite of this figure's shape.
+     *
+     * @return {String}
+     */
+    this.oppositeShape = function() {
         return this.shape == 'C' ? 'L' : 'C';
     }
-    
-    this.iconClass = function() {
-        return 'fa figure-icon'
-            + (this.size == 'B' ? ' big' : ' small')
-            + (this.color == 'Y' ? ' yellow' : ' blue')
-            + (this.shape == 'C' ? ' fa-circle-o' : ' fa-lozenge-o');
+
+    /**
+     * Evaluates if this figure is the same as the given figure.
+     *
+     * @param {ELUS.Figure} other - the other figure
+     * @return {Boolean}
+     */
+    this.equals = function(other) {
+        return this.shorthand === other.shorthand;
     }
     
+    /**
+     * Renders the figure as a HTML element.
+     *
+     * @param {String} id - the optional id of the element
+     * @param {String} clazz - the optional class of the element
+     * @return {Boolean}
+     */
     this.render = function(id, clazz) {
         return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + this.shorthand + '">'
-            +   '<span class="figure-icon ' + this.iconClass() + '"></span>'
+            + '<span class="figure-icon fa figure-icon'
+            + (this.size == 'B' ? ' big' : ' small')
+            + (this.color == 'Y' ? ' yellow' : ' blue')
+            + (this.shape == 'C' ? ' fa-circle-o' : ' fa-lozenge-o')
+            + '"></span>'
             +   '<span class="figure-label">' + ELUS.Size[this.size] + " " + ELUS.Color[this.color] + " " + ELUS.Shape[this.shape] + '</span>'
             + '</span>';
     }
     
-    this.equals = function(other) {
-        return this.shorthand === other.shorthand;
-    }
 }
 
 /**
  * Class to store and manipulate rules.
+ *
+ * @param {String} shorthand - the shorthand that expresses the rule, eg. "hL?cG:s="
+ * @returns {ELUS.Rule}
  */
 ELUS.Rule = function(shorthand) {
     this.shorthand = shorthand;
@@ -77,6 +107,9 @@ ELUS.Rule = function(shorthand) {
     this.trueTemplate = (i2 == -1) ? this.shorthand.substring(i1 + 1) : this.shorthand.substring(i1 + 1, i2);
     this.falseTemplate = (i2 == -1) ? '' : this.shorthand.substring(i2 + 1);
 
+    /**
+     * Returns the full description of the rule.
+     */
     this.toString = function() {
         var conditionToken = this.condition.substr(0, 1);
         var conditionValue = this.condition.substr(1, 1);
@@ -89,9 +122,15 @@ ELUS.Rule = function(shorthand) {
         }
     }
     
-    function templateToString(template) {
-        var attribute = template.substr(0, 1);
-        var operator = template.substr(1, 1);
+    /**
+     * Converts a partial template to a string.
+     *
+     * @param {String} shorthand - the shorthand that expresses the template, eg. "s="
+     * @returns {String}
+     */
+    function templateToString(shorthand) {
+        var attribute = shorthand.substr(0, 1);
+        var operator = shorthand.substr(1, 1);
 
         if (attribute == 's') { // size
             return (operator == '=' ? 'same' : (operator == '!' ? 'different' : ELUS.Size[operator])) + ' size';
@@ -138,16 +177,37 @@ ELUS.ClassicRules = [
     ]
 ]
 
-ELUS.ruleTooltip = function(level) {
-    switch (level) {
-        case 1: return "Level 1: Always choose same/different feature";
-        case 2: return "Level 2: TODO";
-        case 3: return "Level 3: TODO";
+/**
+ * Gets a random element from the given pool.
+ *
+ * @param {Array} pool - the pool to choose from
+ * @return {?}
+ */
+ELUS.getRandomElement = function(pool) {
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/**
+ * Gets N random elements from the given pool.
+ *
+ * @param {Array} pool - the pool to choose from
+ * @param {Number} count - the number of elements to choose
+ * @return {Array}
+ */
+ELUS.getNRandomElements = function(pool, count) {
+    var picked = [];
+    for (var i = 0; i < count; i++) {
+        picked.push(pool.splice(ELUS.indexOfFigure(pool, ELUS.getRandomElement(pool)), 1)[0]);
     }
+    return picked;
 }
 
 /**
  * Generates a rule based on the current game type and level.
+ *
+ * @param {String} gameType - the current game type
+ * @param {Number} level - the current game level
+ * @returns {ELUS.Rule}
  */
 ELUS.generateRule = function(gameType, level) {
     // TODO: implement gameType = 'Random'
@@ -156,10 +216,11 @@ ELUS.generateRule = function(gameType, level) {
 
 /**
  * Generates all (8) possible figure combinations to fill the initial figure pool.
+ *
+ * @returns {Array}
  */
 ELUS.generateAllFigures = function() {
     var figures = [];
-   
     for (var i = 0; i < Object.keys(ELUS.Size).length; i++) {
         for (var j = 0; j < Object.keys(ELUS.Color).length; j++) {
             for (var k = 0; k < Object.keys(ELUS.Shape).length; k++) {
@@ -167,12 +228,16 @@ ELUS.generateAllFigures = function() {
             }
         }
     }
-    
+
     return figures;
 }
 
 /**
- * Applies the given rule on the given figure to gets the next figure template string, eg. "cY".
+ * Applies the given rule on the given figure to get the next figure template string, eg. "cY".
+ *
+ * @param {ELUS.Rule} rule - the rule to apply
+ * @param {ELUS.Figure} figure - the figure to apply to rule on 
+ * @return {String}
  */
 ELUS.getNextFigureTemplate = function(rule, figure) {
     var sizeCondition, colorCondition, shapeCondition;
@@ -190,6 +255,14 @@ ELUS.getNextFigureTemplate = function(rule, figure) {
     return rule.condition == '-' || sizeCondition == figure.size || colorCondition == figure.color || shapeCondition == figure.shape ? rule.trueTemplate : rule.falseTemplate;
 }
 
+/**
+ * Gets those figures from the given pool that match the given template.
+ *
+ * @param {Array} pool - the pool of figures to choose from
+ * @param {ELUS.Figure} figure - the figure to apply the template on
+ * @param {String} template - the template to apply
+ * @return {Array}
+ */
 ELUS.getMatchingFigures = function(pool, figure, template) {
     var matching = [];
     var sizeFilter, colorFilter, shapeFilter;
@@ -198,11 +271,11 @@ ELUS.getMatchingFigures = function(pool, figure, template) {
     var operator = template.substr(1, 1);
     
     if (attribute == 's') { // size
-        sizeFilter = (operator == '=' ? figure.size : (operator == '!' ? figure.reverseSize() : operator));
+        sizeFilter = (operator == '=' ? figure.size : (operator == '!' ? figure.oppositeSize() : operator));
     } else if (attribute == 'c') { // color
-        colorFilter = (operator == '=' ? figure.color : (operator == '!' ? figure.reverseColor() : operator));
+        colorFilter = (operator == '=' ? figure.color : (operator == '!' ? figure.oppositeColor() : operator));
     } else if (attribute == 'h') { // shape
-        shapeFilter = (operator == '=' ? figure.shape : (operator == '!' ? figure.reverseShape() : operator));
+        shapeFilter = (operator == '=' ? figure.shape : (operator == '!' ? figure.oppositeShape() : operator));
     }
     
     for (var i = 0; i < pool.length; i++) {
@@ -215,6 +288,14 @@ ELUS.getMatchingFigures = function(pool, figure, template) {
     return matching;
 }
 
+/**
+ * Gets those figures from the given pool that do not match the given template.
+ *
+ * @param {Array} pool - the pool of figures to choose from
+ * @param {ELUS.Figure} figure - the figure to apply the template on
+ * @param {String} template - the template to apply
+ * @return {Array}
+ */
 ELUS.getNonMatchingFigures = function(pool, figure, template) {
     var matching = ELUS.getMatchingFigures(pool, figure, template);
     return pool.filter(function(item) {
@@ -222,6 +303,27 @@ ELUS.getNonMatchingFigures = function(pool, figure, template) {
     });
 }
 
+/**
+ * Gets the next figure choices (1 correct, 2 incorrect) from the pool based on the given figure and template string and shuffles them.
+ *
+ * @param {Array} pool - the pool to choose from
+ * @param {ELUS.Figure} figure - the figure to apply the template on
+ * @param {String} template - the template to apply
+ * @return {Array}
+ */
+ELUS.getNextChoicesShuffled = function(pool, figure, template) {
+    return [ELUS.getRandomElement(ELUS.getMatchingFigures(pool, figure, template))].concat(ELUS.getNRandomElements(ELUS.getNonMatchingFigures(pool, figure, template), 2)).sort(function() {
+       return .5 - Math.random(); 
+    });
+}
+
+/**
+ * Gets the index of a given figure in the given pool.
+ *
+ * @param {Array} pool - the pool of figures to search in
+ * @param {ELUS.Figure} figure - the figure to look for
+ * @return {Number}
+ */
 ELUS.indexOfFigure = function(pool, figure) {
     for (var i = 0; i < pool.length; i++) {
         if (pool[i].equals(figure)) {
@@ -231,28 +333,39 @@ ELUS.indexOfFigure = function(pool, figure) {
     return -1;
 }
 
-ELUS.getRandomElement = function(pool) {
-    return pool[Math.floor(Math.random() * pool.length)];
+/**
+ * Evaluates if the given figure is the correct successor of the previous figure based on the given template.
+ *
+ * @param {Array} pool - the pool to choose from
+ * @param {ELUS.Figure} figure - the figure to check
+ * @param {ELUS.Figure} previousFigure - the previous figure to apply the template on
+ * @param {String} template - the template to apply
+ * @return {Boolean}
+ */
+ELUS.isCorrectFigure = function(pool, figure, previousFigure, template) {
+    return ELUS.indexOfFigure(ELUS.getMatchingFigures(pool, previousFigure, template), figure) >= 0;
 }
 
-ELUS.getNRandomElements = function(pool, count) {
-    var picked = [];
-    for (var i = 0; i < count; i++) {
-        picked.push(pool.splice(ELUS.indexOfFigure(pool, ELUS.getRandomElement(pool)), 1)[0]);
+/**
+ * Formats a string with the given arguments as placeholders.
+ *
+ * @returns {String}
+ */
+String.prototype.format = function() {
+    var formatted = this;
+    for (var arg in arguments) {
+        formatted = formatted.replace('{' + arg + '}', arguments[arg]);
     }
-    return picked;
-}
+    return formatted;
+};
 
-ELUS.getNextChoicesShuffled = function(pool, figure, template) {
-    return [ELUS.getRandomElement(ELUS.getMatchingFigures(pool, figure, template))].concat(ELUS.getNRandomElements(ELUS.getNonMatchingFigures(pool, figure, template), 2)).sort(function() {
-       return .5 - Math.random(); 
-    });
-}
+// UI methods
 
-ELUS.isCorrectFigure = function(pool, figure, previous, template) {
-    return ELUS.indexOfFigure(ELUS.getMatchingFigures(pool, previous, template), figure) >= 0;
-}
-
+/**
+ * Adds a new figure row to the figures grid.
+ *
+ * @param {Number} round - the current game round
+ */
 ELUS.addFigureRow = function(round) {
     var newRound = $('<div class="figure-row">'
       +   '<span class="figure-row-number">' + round + '</span>'
@@ -279,27 +392,29 @@ ELUS.addFigureRow = function(round) {
         newRound.append(span);
     }
     
-    
     $('#figures-value').text(round + '/8');
     newRound.hide().slideDown(500);
 }
 
 /**
- * Adds a figure to the last row.
+ * Adds a new figure to the last row.
+ *
+ * @param {ELUS.Figure} figure - the figure to add
  */
 ELUS.addFigure = function(figure) {
     $('.figure-row').last().children('.figure-row-number').after(figure.render(null, 'not-selected'));
 }
 
 /**
- * Adds placeholder and 3 choices to the last row.
+ * Adds a placeholder and 3 choices to the last row.
  */
 ELUS.addChoices = function() {
     // add "?" placeholder to last row
-    var placeholder = '<span id="next-placeholder" class="figure next-placeholder">'
+    var placeholder = $('<span id="next-placeholder" class="figure next-placeholder" data-original-title="' + ELUS.ruleHint + '">'
       +   '<span class="figure-label next">?</span>'
-      + '</span>';
+      + '</span>').tooltip({ placement: "bottom" });
     $('.figure-row').last().children('.figure-row-number').after(placeholder);
+    //placeholder;
     
     // get 3 choice buttons based on current figure/rule and add them as choice buttons
     var choices = ELUS.getNextChoicesShuffled(ELUS.allFigures, ELUS.lastFigure, ELUS.nextFigureTemplate);
@@ -310,13 +425,14 @@ ELUS.addChoices = function() {
         choice.click(function() {
             ELUS.selectFigure(this, choices);
         });
+        // TODO: add hover text
         
         $('.figure-row').last().children().last().after(choice);
     }
 }
 
 /**
- * Selects a figure. Evaluates whether the choice is correct, then replaces the "?" placeholder with it.
+ * Selects a figure: evaluates whether the choice is correct, then replaces the "?" placeholder with it.
  */
 ELUS.selectFigure = function(selected, choices) {
     var selectedFigure = new ELUS.Figure(selected.getAttribute('data-value'));
@@ -357,9 +473,9 @@ ELUS.selectFigure = function(selected, choices) {
             $('#tries-left-value').fadeOut(200, function() {
                 $(this).text(ELUS.errorsLeft).fadeIn();
             });
-            ELUS.changeStatusbarText('Incorrect choice - ' + ELUS.errorsLeft + ' tries left.', true);
+            ELUS.changeStatusbarText('<span class="red">Incorrect choice!</span> ' + ELUS.errorsLeft + ' tries left.', true);
         } else {
-            ELUS.changeStatusbarText('Correct choice!', true);
+            ELUS.changeStatusbarText('<span class="green">Correct choice!</span>', true);
         }
 
         // check how many attempts/rounds we have left in the game
@@ -375,15 +491,18 @@ ELUS.selectFigure = function(selected, choices) {
 }
 
 /**
- * Adds the initial 3 figures to the game.
+ * Adds the initial 3 figures to the figures grid.
  */
 ELUS.addInitialFigures = function() {
+    // construct array of 3 figures
     var initialFigures = [];
     for (var i = 0; i < 3; i++) {
         ELUS.lastFigure = (i == 0) ? ELUS.getRandomElement(ELUS.allFigures) : ELUS.getRandomElement(ELUS.getMatchingFigures(ELUS.allFigures, ELUS.lastFigure, ELUS.nextFigureTemplate));
         ELUS.nextFigureTemplate = ELUS.getNextFigureTemplate(ELUS.rule, ELUS.lastFigure);
         initialFigures.push(ELUS.lastFigure);
     }
+    
+    // each figure row should appear after the previous one
     $.each(initialFigures, function(i, figure) {
         setTimeout(function() {
             ELUS.addFigureRow(++ELUS.round);
@@ -424,22 +543,21 @@ ELUS.initializeGame = function() {
     ELUS.changeStatusbarText('Welcome to ELUS!', true, true);
 }
 
+/**
+ * Finishes the current level: advances to the next level or returns to the main menu.
+ * 
+ * @param {Boolean} won - if the game was won
+ */
 ELUS.finishLevel = function(won) {
-    var html = '';
-    if (won) {
-        html = '<span class="game-won">You won!</span>';
-        html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>';
+    var html = won ? '<span class="green">You won!</span>' : '<span class="red">You lost.</span>';
+    html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>.';
         
-        if (ELUS.isGameWon()) {
-            html += '<br><span class="game-completed">Congratulations, you have won the game!</span>';
-            $('#button-finish-game').show();
-        } else {
-            $('#button-next-level').show();
-        }
+    if (won && ELUS.isGameWon()) {
+        html += '<br><span class="teal">Congratulations, you have won the game!</span>';
+        $('#button-finish-game').show();
+    } else if (won) {
+        $('#button-next-level').show();
     } else {
-        html = '<span class="game-lost">You lost.</span>';
-        html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>';
-        
         $('#button-cancel-game').hide();
         $('#button-new-game-grp').show();
         $('#button-finish-game').show();        
@@ -455,7 +573,9 @@ ELUS.isGameWon = function() {
 }
 
 /**
- * Cancels the current game after confirmation.
+ * Cancels the current game; if in mid-game, asks for confirmation first.
+ *
+ * @param {Button} btn - the button that was pressed
  */
 ELUS.cancelGame = function(btn) {
     var btn = $(btn);
@@ -472,11 +592,23 @@ ELUS.cancelGame = function(btn) {
     }
 }
 
+/**
+ * Advances to the next level.
+ */
 ELUS.nextLevel = function() {
+    // advance level, reset counters
     ELUS.level++, ELUS.round = 0, ELUS.errorsLeft = 3;
     
-    // generate rule
+    // generate rule and related hint
     ELUS.rule = ELUS.generateRule(ELUS.gameType, ELUS.level);
+    switch (ELUS.level) {
+        case 1:
+            ELUS.ruleHint = 'Level 1: Always choose figure with same <attribute> OR different <attribute> as the last figure'; break;
+        case 2:
+            ELUS.ruleHint = 'Level 2: If the last figure has <attribute A>, then choose figure with <this of attribute B>, otherwise choose figure with <that of attribute B>'; break;
+        case 3:
+            ELUS.ruleHint = 'Level 3: If the last figure has <attribute A> then choose figure with <this of attribute B>, otherwise choose figure with <that of attribute C> OR with same <attribute> OR different <attribute> as the last figure'; break;
+    }
     
     // clear all containers
     $('.figures').empty();
@@ -500,11 +632,21 @@ ELUS.nextLevel = function() {
     }, 500 * 3);
 }
 
+/**
+ * Changes the game type.
+ */
 ELUS.changeGameType = function(gameType) {
     ELUS.gameType = gameType;
     $('#button-new-game').text('New game: ' + gameType);
 }
 
+/**
+ * Replaces the statusbar's text with the given content.
+ *
+ * @param {String} html - the content
+ * @param {Boolean} sticky - if true, this will remain the next default message to reset to
+ * @param {String} withoutFade - if true, the text will be replaced without any fade-out animation
+ */
 ELUS.changeStatusbarText = function(html, sticky, withoutFade) {
     if (sticky) {
         ELUS.statusBarMessage = html;
@@ -516,10 +658,16 @@ ELUS.changeStatusbarText = function(html, sticky, withoutFade) {
     });
 }
 
+/**
+ * Resets the statusbar's text to the previous content.
+ */
 ELUS.resetStatusbarText = function() {
     ELUS.changeStatusbarText(ELUS.statusBarMessage);
 }
 
+/**
+ * Initializes the screen after loading the document.
+ */
 ELUS.initialize = function() {
     ELUS.changeGameType('Classic');
     
@@ -543,7 +691,7 @@ ELUS.initialize = function() {
             case 'Classic':
                 text = '<b>Classic game</b> - Play 3 consecutive rounds of rules with increasing difficulty.'; break;
             case "Random":
-                text = '<b>Random game</b> - Play a round with a randomized rule.'; break;
+                text = '<b>Random game</b> - Play a round with a randomized rule. (NOT AVAILABLE YET)'; break;
         }
         ELUS.changeStatusbarText(text);
     }, ELUS.resetStatusbarText);
@@ -551,24 +699,40 @@ ELUS.initialize = function() {
     // set next level button to go to next level
     $('#button-next-level').hide().click(function() {
        ELUS.nextLevel();
-    });
+    }).hover(function() {
+        ELUS.changeStatusbarText('Go to the next level.'); 
+    }, ELUS.resetStatusbarText);
     
     // set "Cancel game" and "Finish game" buttons to cancel game
     $('#button-cancel-game, #button-finish-game').click(function(e) {
        ELUS.cancelGame(e.target);
-    });
+    }).hover(function() {
+        ELUS.changeStatusbarText('End current game and return to the main menu.'); 
+    }, ELUS.resetStatusbarText);
     
     // set "Instructions" button to display instructions
     $('#button-instructions').click(function() {
         $('#instructions').slideToggle(200, function() {
             $('#instructions-carousel').carousel(0); // reset carousel
         });
-    });
+    }).hover(function() { 
+        ELUS.changeStatusbarText('View instructions for playing ELUS.'); 
+    }, ELUS.resetStatusbarText);
+    
+    // set up "About" button
+    $('#button-about').hover(function() { 
+        ELUS.changeStatusbarText('Find out about the author of ELUS.'); 
+    }, ELUS.resetStatusbarText);
+
+    // set up "GitHub" button
+    $('#button-github').hover(function() { 
+        ELUS.changeStatusbarText('Check out the source code on GitHub (opens in a new tab).'); 
+    }, ELUS.resetStatusbarText);
     
     // set instructions modal panel behaviour
     $('#instructions').on('hidden.bs.modal', function() {
         $('#instructions-carousel').carousel(0); // reset carousel
-    })
+    });
     
     // set instructions carousel behaviour
     $('#instructions-carousel').on('slid.bs.carousel', function() {
@@ -596,11 +760,3 @@ ELUS.initialize = function() {
     // initialize game
     ELUS.initializeGame();
 }
-
-String.prototype.format = function() {
-    var formatted = this;
-    for (var arg in arguments) {
-        formatted = formatted.replace('{' + arg + '}', arguments[arg]);
-    }
-    return formatted;
-};

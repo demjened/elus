@@ -41,7 +41,7 @@
                 <a id="button-github" class='btn btn-lg btn-primary' href="https://github.com/demjened/elus" target="_new">GitHub</a>
             </div>
             
-            <span class="version">v0.01</span>
+            <span class="version"><!-- version --></span>
         </div>
 
         <div class="figures">
@@ -81,18 +81,70 @@
                                         <span class="fa figure-icon orange fa-caret-right"></span>
                                         <span class="fa figure-icon big yellow fa-circle-o"></span>
                                         <span class="fa figure-icon orange fa-caret-right"></span>
-                                        <span class="fa figure-icon big teal fa-question-circle"></span>
+                                        <span class="fa figure-icon big gray fa-question-circle"></span>
                                     </p>
                                     <p>
                                         The first 3 figures are laid out for you.
                                     </p>
-                                    <p>
-                                        Find the <b>next 5 figures</b> without making more than <b>3 errors</b>.
+                                    <p style="color: green">
+                                        <b>Find the next 5 figures</b> that follow the sequence.
+                                    </p>
+                                    <p style="color: red">
+                                        Do not make more than <b>3 errors</b>.
                                     </p>
                                 </div>
                                 <div class="item">
                                     <p>
-                                        A hidden <b>rule</b> determines which figure comes next...
+                                        Each figure has 3 <b style="color: teal">attributes</b>:
+                                    </p>
+                                    <p>
+                                        <table>
+                                            <tr>
+                                                <td><b>SIZE</b></td>
+                                                <td>
+                                                    <b style="color: teal">Small</b>
+                                                    <span class="fa figure-icon small gray fa-circle-o"></span>
+                                                </td>
+                                                <td>
+                                                    or <b style="color: teal">Big</b>
+                                                    <span class="fa figure-icon big gray fa-circle-o"></span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>COLOR</b></td>
+                                                <td>
+                                                    <b style="color: teal">Blue</b>
+                                                    <span class="fa figure-icon big blue fa-circle-o"></span>
+                                                </td>
+                                                <td>
+                                                    or <b style="color: teal">Yellow</b>
+                                                    <span class="fa figure-icon big yellow fa-circle-o"></span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>SHAPE</b></td>
+                                                <td>
+                                                    <b style="color: teal">Circle</b>
+                                                    <span class="fa figure-icon big gray fa-circle-o"></span>
+                                                </td>
+                                                <td>
+                                                    or <b style="color: teal">Lozenge</b>
+                                                    <span class="fa figure-icon big gray fa-lozenge-o"></span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </p>
+                                    <p>
+                                        <i>(For example, this is a <b>Small Blue Lozenge</b>: <span class="fa figure-icon small blue fa-lozenge-o"></span>)</i>
+                                    </p>
+                                </div>
+                                
+                                <div class="item">
+                                    <p>
+                                        A hidden <b style="color: orange">rule</b> determines which figure comes next.
+                                    </p>
+                                    <p>
+                                        It is always based on an <b style="color: teal">attribute</b> of the <b>last figure</b>.
                                     </p>
                                     <p align="center">
                                         <span class="fa figure-icon big blue fa-circle-o"></span>
@@ -104,80 +156,56 @@
                                         <span class="fa figure-icon big gray fa-lozenge-o"></span>
                                     </p>
                                     <p>
-                                        ...based on <b>an attribute of the last figure:</b>
+                                        <i>(For example, the <b style="color: orange">rule</b> can be this: If the last figure is <b style="color: teal">Blue</b>, then choose <b style="color: teal">Circle</b>, but if the last figure is <b style="color: teal">Yellow</b>, choose <b style="color: teal">Lozenge</b> instead)</i>
                                     </p>
-                                    <p align="center">
-                                        Size: <b>Small</b> <span class="fa figure-icon small gray fa-circle-o"></span> or Big <span class="fa figure-icon big gray fa-circle-o"></span>
-                                    </p>
-                                    <p align="center">
-                                        Color: Blue <span class="fa figure-icon big blue fa-circle-o"></span> or Yellow <span class="fa figure-icon big yellow fa-circle-o"></span>
-                                    </p>
-                                    <p align="center">
-                                        Shape: Circle <span class="fa figure-icon big gray fa-circle-o"></span> or Lozenge <span class="fa figure-icon big gray fa-lozenge-o"></span>
-                                    </p>
-                                    
                                 </div>
                                 <div class="item">
                                     <p>
-                                        There are <b>3 choices</b> in each turn, but <b>only one is correct</b>, the others do not follow the rule.
+                                        In each round you must choose from <b>3 possible choices</b>, but <b>only one is correct</b>, the others do not follow the <b style="color: orange">rule</b>.
                                     </p>
                                     <p align="center">
                                         <span class="fa figure-icon big blue fa-circle-o"></span>
                                         <span class="fa figure-icon orange fa-caret-right"></span>
-                                        <span class="fa figure-icon small yellow fa-circle-o"></span>
-                                        <span class="fa figure-icon small correct fa-check"></span>
                                         <span class="fa figure-icon small yellow fa-lozenge-o"></span>
-                                        <span class="fa figure-icon small incorrect fa-close"></span>
-                                        <span class="fa figure-icon big blue fa-circle-o"></span>
-                                        <span class="fa figure-icon small incorrect fa-close"></span>
+                                        <span class="fa figure-icon small incorrect fa-close" style="margin-left: -4px; text-align: left"></span>
+                                        <span class="fa figure-icon small yellow fa-circle-o"></span>
+                                        <span class="fa figure-icon small correct fa-check" style="margin-left: -4px; text-align: left"></span>
+                                        <span class="fa figure-icon big blue fa-lozenge-o"></span>
+                                        <span class="fa figure-icon small incorrect fa-close" style="margin-left: -4px; text-align: left"></span>
                                     </p>
                                     <p>
-                                        Whether your choice is right or wrong, the rule will <b>apply to your selection</b> and the next choices will be based on it.
+                                        <br>Choose the figure that you think follows the <b style="color: orange">rule</b>.
+                                    </p>
+                                </div>
+                                <div class="item">
+                                    <p>
+                                        Whether you chose a correct or incorrect figure, the <b style="color: orange">rule</b> will <b>apply to your selection</b> and the choices in the next round will be based on it.
                                     </p>
                                     <p align="center">
                                         <span class="fa figure-icon small yellow fa-lozenge-o"></span>
-                                        <span class="fa figure-icon small incorrect fa-close"></span>
+                                        <span class="fa figure-icon small incorrect fa-close" style="margin-left: -4px; text-align: left"></span>
                                         <span class="fa figure-icon orange fa-caret-right"></span>
-                                        <span class="fa figure-icon big teal fa-question-circle"></span>
+                                        <span class="fa figure-icon big gray fa-question-circle"></span>
+                                    </p>
+                                    <p>
+                                        <br>It is OK to make some errors (choosing incorrect figures), especially on harder levels.
                                     </p>
                                 </div>
                                 <div class="item">
                                     <p>
                                         In a <b>Classic</b> game there are <b>3 levels</b>, each with a more difficult rule than the previous one.
-                                        <i>Hover over <b>LEVEL</b> to get some hints about the rule.</i>
                                     </p>
                                     <p>
-                                        In a <b>Random</b> game there is <b>1 level</b>, and the rule is randomly generated.
+                                        Hover over the <b>[ ? ] button</b> during the game to get some hints about the current rule.
                                     </p>
                                     <p>
-                                        Good luck!
+                                        In a <b>Random</b> game there is <b>only one level</b>, and the rule is randomly generated.
                                     </p>
-                                    
-<!--                                        
-                                        <table style="border: 1px solid black; border-collapse: collapse">
-                                            <tr>
-                                                <th>Level</th><th>Rule</th><th>Example</th>
-                                            </tr>
-                                            <tr>
-                                                <td>1</td>
-                                                <td style="font-size: 0.8em">Always choose the [same/different] attribute</td>
-                                                <td style="font-size: 0.8em; font-style: italic">Always choose the same COLOR</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td style="font-size: 0.8em">If attribute X is [this], choose [this] of attribute Y, otherwise choose the [opposite] of the same attribute</td>
-                                                <td style="font-size: 0.8em">If the last figure is a <b>Circle</b>, choose a <b>Green</b> figure, otherwise choose a <b>Yellow</b> one</td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td style="font-size: 0.8em">If attribute X is [this], choose [this] of attribute Y, otherwise choose [that] of attribute Y</td>
-                                                <td style="font-size: 0.8em">If the last figure is a <b>Circle</b>, choose a <b>Green</b> figure, otherwise choose a <b>Yellow</b> one</td>
-                                            </tr>
-                                        </table>
--->
+                                    <p>
+                                        <b>Good luck and have fun with ELUS!</b>
+                                    </p>
                                 </div>                            
                             </div>
-                  
                             <a class="left carousel-control collapse" href="#instructions-carousel" role="button" data-slide="prev">
                                 <span class="fa fa-arrow-left"></span>
                             </a>

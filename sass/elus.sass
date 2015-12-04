@@ -3,6 +3,7 @@ $colorHighlight2: white
 $colorBackground1: #ECECEC
 $colorBackground2: #404040
 $figureIconColors: green blue teal orange yellow gray
+$statusBarColors: green teal red
 $breakPointSmall: 960px // 360px
 
 @font-face
@@ -57,18 +58,14 @@ body
 
     *
         display: inline
-
-    .game-won
-        color: green
-
-    .game-lost
-        color: red
-
-    .game-completed
-        color: teal
         
     .statusbar-header
         color: $colorHighlight1
+
+    .statusbar-message
+        @each $color in $statusBarColors
+            .#{$color}
+                color: $color
 
 .statusbar-buttons
     text-align: center
@@ -139,6 +136,12 @@ body
         padding: 4px
         text-align: center
         width: 26px
+        
+    .tooltip-inner
+        background-color: $colorBackground2
+        color: $colorHighlight2
+        font-size: 1.2em
+        max-width: 300px
 
 /* figure styles */
 
@@ -253,15 +256,16 @@ body
         padding-right: 0px
     
     .carousel-inner
-        height: 280px
+        height: 200px
         margin: 0px 40px
+        text-align: center;
         width: auto
 
     .carousel-control
         background: none
         color: $colorBackground2
         font-size: 1.3em
-        line-height: 250px
+        line-height: 200px
         opacity: 1.0
         vertical-align: middle
         width: 40px
@@ -269,9 +273,20 @@ body
         &:hover
             color: $colorHighlight1
             
-    .figure-icon
-        margin-left: -4px
-
+    table
+        margin: auto
+        width: 300px
+        
+        tr
+            height: 40px
+             
+        td
+            text-align: left
+            
+            &:first-of-type
+                text-align: right
+                padding-right: 20px
+            
 .modal-header
     background-color: $colorBackground2
     border-top-left-radius: 4px
