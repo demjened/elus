@@ -1,12 +1,9 @@
 // TODO: fluid layout
-// TODO: add rule tooltips
-// TODO: add unit tests
-// TODO: separate UI from game logic
 // TODO: add random game mode
 
 // initialize namespace
 var ELUS = ELUS || {
-    version: 0.90,
+    version: 0.92,
     statusBarMessage: '',
     rule: {},
     ruleHint: '',
@@ -15,7 +12,8 @@ var ELUS = ELUS || {
     round: 0,
     errorsLeft: 0,
     lastFigure: '',
-    nextFigureTemplate: ''
+    nextFigureTemplate: '',
+    animating: false
 }
 
 // initialize type classes
@@ -86,7 +84,7 @@ ELUS.Figure = function(shorthand) {
             + (this.color == 'Y' ? ' yellow' : ' blue')
             + (this.shape == 'C' ? ' fa-circle-o' : ' fa-lozenge-o')
             + '"></span>'
-            +   '<span class="figure-label">' + ELUS.Size[this.size] + " " + ELUS.Color[this.color] + " " + ELUS.Shape[this.shape] + '</span>'
+            +   '<span class="figure-label">' + ELUS.Size[this.size] + ' ' + ELUS.Color[this.color] + ' ' + ELUS.Shape[this.shape] + '</span>'
             + '</span>';
     }
     
@@ -188,7 +186,7 @@ ELUS.getRandomElement = function(pool) {
 }
 
 /**
- * Gets N random elements from the given pool.
+ * Takes N random elements from the given pool and returns them in an array.
  *
  * @param {Array} pool - the pool to choose from
  * @param {Number} count - the number of elements to choose
@@ -197,7 +195,7 @@ ELUS.getRandomElement = function(pool) {
 ELUS.getNRandomElements = function(pool, count) {
     var picked = [];
     for (var i = 0; i < count; i++) {
-        picked.push(pool.splice(ELUS.indexOfFigure(pool, ELUS.getRandomElement(pool)), 1)[0]);
+        picked.push(pool.splice(ELUS.indexOf(pool, ELUS.getRandomElement(pool)), 1)[0]);
     }
     return picked;
 }
@@ -299,7 +297,7 @@ ELUS.getMatchingFigures = function(pool, figure, template) {
 ELUS.getNonMatchingFigures = function(pool, figure, template) {
     var matching = ELUS.getMatchingFigures(pool, figure, template);
     return pool.filter(function(item) {
-        return ELUS.indexOfFigure(matching, item) < 0;
+        return ELUS.indexOf(matching, item) < 0;
     });
 }
 
@@ -324,11 +322,16 @@ ELUS.getNextChoicesShuffled = function(pool, figure, template) {
  * @param {ELUS.Figure} figure - the figure to look for
  * @return {Number}
  */
-ELUS.indexOfFigure = function(pool, figure) {
-    for (var i = 0; i < pool.length; i++) {
-        if (pool[i].equals(figure)) {
-            return i;
-        }
+ELUS.indexOf = function(pool, elementToFind) {
+    var isFigure = elementToFind instanceof ELUS.Figure;
+    if (isFigure) { // if so, we are assuming that the pool also contains Figure objects
+        for (var i = 0; i < pool.length; i++) {
+            if (pool[i].equals(elementToFind)) {
+                return i;
+            }
+        };
+    } else { // otherwise just use native indexOf
+        return pool.indexOf(elementToFind);
     }
     return -1;
 }
@@ -343,7 +346,7 @@ ELUS.indexOfFigure = function(pool, figure) {
  * @return {Boolean}
  */
 ELUS.isCorrectFigure = function(pool, figure, previousFigure, template) {
-    return ELUS.indexOfFigure(ELUS.getMatchingFigures(pool, previousFigure, template), figure) >= 0;
+    return ELUS.indexOf(ELUS.getMatchingFigures(pool, previousFigure, template), figure) >= 0;
 }
 
 /**
@@ -367,11 +370,13 @@ String.prototype.format = function() {
  * @param {Number} round - the current game round
  */
 ELUS.addFigureRow = function(round) {
+    // add row
     var newRound = $('<div class="figure-row">'
       +   '<span class="figure-row-number">' + round + '</span>'
       + '</div>');
     $('.figures').append(newRound);
     
+    // also add stats indicators to the row
     if (round == 1) {
         var span = $('<span class="stats">'
             + '<span class="stats-label">Level</span>'
@@ -381,7 +386,7 @@ ELUS.addFigureRow = function(round) {
     } else if (round == 2) {
         var span = $('<span class="stats">'
             + '<span class="stats-label">Round</span>'
-            + '<span class="stats-value" id="figures-value">1/8</span>'
+            + '<span class="stats-value" id="round-value">1/8</span>'
             + '</span>');
         newRound.append(span);
     } else if (round == 3) {
@@ -392,8 +397,14 @@ ELUS.addFigureRow = function(round) {
         newRound.append(span);
     }
     
-    $('#figures-value').text(round + '/8');
-    newRound.hide().slideDown(500);
+    // update round value
+    $('#round-value').text(round + '/8');
+    newRound.hide().slideDown(500, function() {
+        if (round == 3) {
+            ELUS.animating = false;
+            $('#button-cancel-game').removeAttr('disabled');
+        }
+    });
 }
 
 /**
@@ -410,11 +421,10 @@ ELUS.addFigure = function(figure) {
  */
 ELUS.addChoices = function() {
     // add "?" placeholder to last row
-    var placeholder = $('<span id="next-placeholder" class="figure next-placeholder" data-original-title="' + ELUS.ruleHint + '">'
+    var placeholder = $('<span id="next-placeholder" class="figure next-placeholder" data-original-title="' + ELUS.ruleHint + '" data-html="true">'
       +   '<span class="figure-label next">?</span>'
       + '</span>').tooltip({ placement: "bottom" });
     $('.figure-row').last().children('.figure-row-number').after(placeholder);
-    //placeholder;
     
     // get 3 choice buttons based on current figure/rule and add them as choice buttons
     var choices = ELUS.getNextChoicesShuffled(ELUS.allFigures, ELUS.lastFigure, ELUS.nextFigureTemplate);
@@ -422,11 +432,6 @@ ELUS.addChoices = function() {
         var figure = choices[i];
         var choice = $(figure.render('choice' + i, 'selectable'));
             
-        choice.click(function() {
-            ELUS.selectFigure(this, choices);
-        });
-        // TODO: add hover text
-        
         $('.figure-row').last().children().last().after(choice);
     }
 }
@@ -494,6 +499,9 @@ ELUS.selectFigure = function(selected, choices) {
  * Adds the initial 3 figures to the figures grid.
  */
 ELUS.addInitialFigures = function() {
+    ELUS.animating = true;
+    $('#button-cancel-game').prop('disabled', true);
+    
     // construct array of 3 figures
     var initialFigures = [];
     for (var i = 0; i < 3; i++) {
@@ -578,6 +586,9 @@ ELUS.isGameWon = function() {
  * @param {Button} btn - the button that was pressed
  */
 ELUS.cancelGame = function(btn) {
+    if (ELUS.animating) {
+        return;
+    }
     var btn = $(btn);
     var pressed = btn.attr('pressed');
     if (!pressed) {
@@ -601,13 +612,14 @@ ELUS.nextLevel = function() {
     
     // generate rule and related hint
     ELUS.rule = ELUS.generateRule(ELUS.gameType, ELUS.level);
+    ELUS.ruleHint = '<span class=\'level\'>Level ' + ELUS.level + '</span> - ';
     switch (ELUS.level) {
         case 1:
-            ELUS.ruleHint = 'Level 1: Always choose figure with same <attribute> OR different <attribute> as the last figure'; break;
+            ELUS.ruleHint += 'Always choose figure with <span class=\'selector\'>same</span> <span class=\'attribute\'>ATTRIBUTE X</span> <br>or with <span class=\'selector\'>different</span> <span class=\'attribute\'>ATTRIBUTE X</span><br>as the last figure'; break;
         case 2:
-            ELUS.ruleHint = 'Level 2: If the last figure has <attribute A>, then choose figure with <this of attribute B>, otherwise choose figure with <that of attribute B>'; break;
+            ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'selector\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise choose figure with<span class=\'selector\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Y</span>'; break;
         case 3:
-            ELUS.ruleHint = 'Level 3: If the last figure has <attribute A> then choose figure with <this of attribute B>, otherwise choose figure with <that of attribute C> OR with same <attribute> OR different <attribute> as the last figure'; break;
+            ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'selector\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise: choose figure with <span class=\'selector\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Z</span><br>or with <span class=\'selector\'>same</span> <span class=\'attribute\'>ATTRIBUTE Z</span> <br>or with <span class=\'selector\'>different</span> <span class=\'attribute\'>ATTRIBUTE Z</span><br>as the last figure'; break;
     }
     
     // clear all containers

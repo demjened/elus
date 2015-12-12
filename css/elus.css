@@ -166,11 +166,34 @@ body {
   width: 26px;
 }
 
+.figure-row .tooltip.bottom {
+  left: inherit !important;
+}
+
+.figure-row .tooltip-arrow {
+  left: 60px !important;
+}
+
 .figure-row .tooltip-inner {
   background-color: #404040;
   color: white;
   font-size: 1.2em;
-  max-width: 300px;
+  max-width: 400px;
+}
+
+.figure-row .tooltip-inner .level {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.figure-row .tooltip-inner .selector {
+  color: orange;
+  font-weight: bold;
+}
+
+.figure-row .tooltip-inner .attribute {
+  color: teal;
+  font-weight: bold;
 }
 
 /* figure styles */
