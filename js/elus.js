@@ -510,8 +510,7 @@ ELUS.selectFigure = function(selected, choices) {
         $(this).removeClass('selectable')
             .addClass($(this).attr('id') == selectedId ? (isCorrect ? 'correct' : 'incorrect') : 'not-selected')
             .off('click')
-            .off('hover')
-            .hover(function() { console.log('h'); });
+            .off('hover'));
     });
     
     // replace "?" placeholder with selected figure via sliding animation
