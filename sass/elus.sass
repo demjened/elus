@@ -2,8 +2,9 @@ $colorHighlight1: #FF7F23
 $colorHighlight2: white
 $colorBackground1: #ECECEC
 $colorBackground2: #404040
-$figureIconColors: green blue teal orange yellow gray
-$statusBarColors: green teal red
+$colorCorrect: #167B16
+$colorIncorrect: #E03C3C
+$figureIconColors: blue yellow gray
 $breakPointSmall: 960px // 360px
 
 @font-face
@@ -63,10 +64,10 @@ body
     .statusbar-header
         color: $colorHighlight1
 
-    .statusbar-message
-        @each $color in $statusBarColors
-            .#{$color}
-                color: $color
+    .statusbar-message .game-won
+        color: teal
+        font-weight: bold
+        text-transform: uppercase
 
 .statusbar-buttons
     text-align: center
@@ -91,10 +92,13 @@ body
         
     .stats-value
         color: $colorHighlight2
-        width: 80px
+        font-size: 2.5em
         padding: 4px
         padding-left: 10px
-        font-size: 2.5em
+        width: 80px
+        
+        &.warning
+            color: $colorIncorrect
 
         @media screen and (max-width: $breakPointSmall)
             font-size: 2em
@@ -154,14 +158,6 @@ body
         .level
             font-weight: bold
             text-transform: uppercase
-                
-        .selector
-            color: orange
-            font-weight: bold
-            
-        .attribute
-            color: teal
-            font-weight: bold
                 
 /* figure styles */
 
@@ -234,11 +230,11 @@ body
 
     &.correct
         background-color: #99E699
-        border-color: green
+        border-color: $colorCorrect
 
     &.incorrect
         background-color: #E99696
-        border-color: red
+        border-color: $colorIncorrect
             
 .figure-icon
     display: inline-block
@@ -266,7 +262,7 @@ body
             content: "\f096"            
             
 
-/* instructions styles */
+/* instructions/about styles */
 
 .instructions
     font-size: 1.5em
@@ -319,3 +315,19 @@ body
 
 .about .modal-body
     font-size: 1.5em
+
+/* misc styles */
+
+span.attribute
+    color: #36B0B0
+    font-weight: bold
+
+span.rule
+    color: orange
+    font-weight: bold
+
+.correct
+    color: $colorCorrect
+
+.incorrect
+    color: $colorIncorrect

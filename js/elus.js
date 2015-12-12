@@ -426,7 +426,7 @@ ELUS.addFigureRow = function(round) {
     if (round == 1) {
         var span = $('<span class="stats">'
             + '<span class="stats-label">Level</span>'
-            + '<span class="stats-value" id="level-value" data-toggle="tooltip">' + ELUS.level + '</span>'
+            + '<span class="stats-value" id="level-value">' + ELUS.level + '</span>'
             + '</span>');
         newRound.append(span);
     } else if (round == 2) {
@@ -536,15 +536,20 @@ ELUS.selectFigure = function(selected, choices) {
 
     // apply changes based on selection (display statusbar text, move to next round or finish game)
     setTimeout(function() {
+        var html = '';
         if (!isCorrect) {
             ELUS.errorsLeft--;
             $('#tries-left-value').fadeOut(200, function() {
+                if (ELUS.errorsLeft <= 1) {
+                    $(this).addClass('warning');
+                }
                 $(this).text(ELUS.errorsLeft).fadeIn();
             });
-            ELUS.changeStatusbarText('<span class="red">Incorrect choice!</span> ' + ELUS.errorsLeft + ' tries left.', true);
+            html = '<span class="incorrect">Incorrect choice!</span> ' + (ELUS.errorsLeft == 1 ? 'Only 1 try left!' : (ELUS.errorsLeft + ' tries left.'));
         } else {
-            ELUS.changeStatusbarText('<span class="green">Correct choice!</span>', true);
+            html = '<span class="correct">Correct choice!</span>';
         }
+        ELUS.changeStatusbarText(html, true);
 
         // check how many attempts/rounds we have left in the game
         if (++ELUS.round == 9 || ELUS.errorsLeft == 0) { // won or lost the round
@@ -615,11 +620,11 @@ ELUS.initializeGame = function() {
  * @param {Boolean} won - if the game was won
  */
 ELUS.finishLevel = function(won) {
-    var html = won ? '<span class="green">You won!</span>' : '<span class="red">You lost.</span>';
+    var html = won ? '<span class="correct">You won!</span>' : '<span class="incorrect">You lost.</span>';
     html += ' The rule was: <b>' + ELUS.rule.toString() + '</b>.';
         
     if (won && ELUS.isGameWon()) {
-        html += '<br><span class="teal">Congratulations, you have won the game!</span>';
+        html += '<br><span class="game-won">Congratulations, you have won the game!</span>';
         $('#button-finish-game').show();
     } else if (won) {
         $('#button-next-level').show();
@@ -670,14 +675,18 @@ ELUS.nextLevel = function() {
     
     // generate rule and related hint
     ELUS.rule = ELUS.generateRule(ELUS.gameType, ELUS.level);
-    ELUS.ruleHint = '<span class=\'level\'>Level ' + ELUS.level + '</span> - ';
-    switch (ELUS.level) {
-        case 1:
-            ELUS.ruleHint += 'Always choose figure with <span class=\'selector\'>same</span> <span class=\'attribute\'>ATTRIBUTE X</span> <br>or with <span class=\'selector\'>different</span> <span class=\'attribute\'>ATTRIBUTE X</span><br>as the last figure'; break;
-        case 2:
-            ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'selector\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise choose figure with<span class=\'selector\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Y</span>'; break;
-        case 3:
-            ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'selector\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise: choose figure with <span class=\'selector\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Z</span><br>or with <span class=\'selector\'>same</span> <span class=\'attribute\'>ATTRIBUTE Z</span> <br>or with <span class=\'selector\'>different</span> <span class=\'attribute\'>ATTRIBUTE Z</span><br>as the last figure'; break;
+    if (ELUS.gameType == 'Random') {
+        ELUS.ruleHint = '<span class=\'level\'>Random game</span> - No hint available for the rule.';
+    } else {
+        ELUS.ruleHint = '<span class=\'level\'>Level ' + ELUS.level + '</span> - ';
+        switch (ELUS.level) {
+            case 1:
+                ELUS.ruleHint += 'Always choose figure with <span class=\'rule\'>same</span> <span class=\'attribute\'>ATTRIBUTE X</span> <br>or with <span class=\'rule\'>different</span> <span class=\'attribute\'>ATTRIBUTE X</span><br>as the last figure'; break;
+            case 2:
+                ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'rule\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise choose figure with <span class=\'rule\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Y</span>'; break;
+            case 3:
+                ELUS.ruleHint = 'If the last figure has <span class=\'attribute\'>ATTRIBUTE X</span> ,<br>then choose figure with <span class=\'rule\'>this</span> of <span class=\'attribute\'>ATTRIBUTE Y</span> ,<br>otherwise: choose figure with <span class=\'rule\'>that</span> of <span class=\'attribute\'>ATTRIBUTE Z</span><br>or with <span class=\'rule\'>same</span> <span class=\'attribute\'>ATTRIBUTE Z</span> <br>or with <span class=\'rule\'>different</span> <span class=\'attribute\'>ATTRIBUTE Z</span><br>as the last figure'; break;
+        }
     }
     
     // clear all containers
@@ -692,7 +701,7 @@ ELUS.nextLevel = function() {
     $('#tries-left-value').text(ELUS.errorsLeft);
     $('#level-value').text(ELUS.level);
     $('#level-value').attr('title', 'foo');
-    ELUS.changeStatusbarText('Starting ' + (ELUS.gameType == 'Random' ? 'random level.' : ('level ' + ELUS.level)), true, true);
+    ELUS.changeStatusbarText('Starting ' + (ELUS.gameType == 'Random' ? 'random level.' : ('level ' + ELUS.level + '.')), true, true);
     
     // add first 3 figures, then display choices based on last figure
     ELUS.addInitialFigures();
