@@ -1,9 +1,8 @@
 // TODO: fluid layout
-// TODO: add random game mode
 
 // initialize namespace
 var ELUS = ELUS || {
-    version: 0.92,
+    version: 1.00,
     statusBarMessage: '',
     rule: {},
     ruleHint: '',
@@ -78,14 +77,23 @@ ELUS.Figure = function(shorthand) {
      * @return {Boolean}
      */
     this.render = function(id, clazz) {
-        return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + this.shorthand + '">'
+        return '<span ' + (id ? 'id="' + id + '" ' : '') + 'class="figure' + (clazz ? ' ' + clazz : '') + '" data-value="' + this.shorthand + '" data-label="' + this.toString() + '">'
             + '<span class="figure-icon fa figure-icon'
             + (this.size == 'B' ? ' big' : ' small')
             + (this.color == 'Y' ? ' yellow' : ' blue')
             + (this.shape == 'C' ? ' fa-circle-o' : ' fa-lozenge-o')
             + '"></span>'
-            +   '<span class="figure-label">' + ELUS.Size[this.size] + ' ' + ELUS.Color[this.color] + ' ' + ELUS.Shape[this.shape] + '</span>'
+            +   '<span class="figure-label">' + this.toString() + '</span>'
             + '</span>';
+    }
+    
+    /**
+     * Returns the full name of the figure.
+     *
+     * @return {String}
+     */
+    this.toString = function() {
+        return ELUS.Size[this.size] + ' ' + ELUS.Color[this.color] + ' ' + ELUS.Shape[this.shape];
     }
     
 }
@@ -107,6 +115,8 @@ ELUS.Rule = function(shorthand) {
 
     /**
      * Returns the full description of the rule.
+     *
+     * @return {String}
      */
     this.toString = function() {
         var conditionToken = this.condition.substr(0, 1);
@@ -208,8 +218,27 @@ ELUS.getNRandomElements = function(pool, count) {
  * @returns {ELUS.Rule}
  */
 ELUS.generateRule = function(gameType, level) {
-    // TODO: implement gameType = 'Random'
-    return new ELUS.Rule(ELUS.getRandomElement(ELUS.ClassicRules[level - 1]));
+    var ruleString;
+    if (gameType == 'Random') {
+        var isConditional = false;
+        if (Math.random() <= 0.25) { // 25% chance to have a non-conditional rule
+            ruleString = '-?' + ELUS.getRandomRuleTemplate();
+        } else {
+            ruleString = ELUS.getRandomRuleTemplate() + '?';
+            
+            // ensure that the true/false templates are not the same
+            // TODO: maybe remove cases like "if last figure is blue then select blue"...?
+            var trueTemplate = ELUS.getRandomRuleTemplate(), falseTemplate = trueTemplate;
+            while (falseTemplate == trueTemplate) {
+                falseTemplate = ELUS.getRandomRuleTemplate();
+            }
+            
+            ruleString += trueTemplate + ':' + falseTemplate;
+        }
+    } else {
+        ruleString = ELUS.getRandomElement(ELUS.ClassicRules[level - 1]);
+    }
+    return new ELUS.Rule(ruleString);
 }
 
 /**
@@ -362,6 +391,23 @@ String.prototype.format = function() {
     return formatted;
 };
 
+/**
+ * Gets a random rule template string, eg. "cY".
+ */
+ELUS.getRandomRuleTemplate = function() {
+    var attribute = parseInt(Math.random() * 3); // 0..2
+    var value = parseInt(Math.random() * 2); // 0..1
+    
+    switch (attribute) {
+        case 0: // size
+            return 's' + Object.keys(ELUS.Size)[value]; break;
+        case 1: // color
+            return 'c' + Object.keys(ELUS.Color)[value]; break; 
+        case 2: // shape
+            return 'h' + Object.keys(ELUS.Shape)[value]; break; 
+    }
+}
+
 // UI methods
 
 /**
@@ -432,8 +478,23 @@ ELUS.addChoices = function() {
         var figure = choices[i];
         var choice = $(figure.render('choice' + i, 'selectable'));
             
+        choice.click(function() {
+            ELUS.selectFigure(this, choices);
+        });
+        
         $('.figure-row').last().children().last().after(choice);
     }
+    
+    // apply hover behaviour
+    $('.figure.selectable').hover(function() {
+        if ($(this).hasClass('selectable')) {
+            ELUS.changeStatusbarText('Select <b>' + this.getAttribute('data-label') + '</b> as the next figure.');
+        }
+    }, function() {
+        if ($(this).hasClass('selectable')) {
+            ELUS.resetStatusbarText();
+        }
+    });
 }
 
 /**
@@ -445,10 +506,12 @@ ELUS.selectFigure = function(selected, choices) {
     var isCorrect = ELUS.isCorrectFigure(choices, selectedFigure, ELUS.lastFigure, ELUS.nextFigureTemplate);
     
     // add appropriate class to each figure choice button and remove selectability
-    $('[id^=choice]').each(function(i) {
+    $('[id^=choice]').each(function() {
         $(this).removeClass('selectable')
             .addClass($(this).attr('id') == selectedId ? (isCorrect ? 'correct' : 'incorrect') : 'not-selected')
-            .off('click');
+            .off('click')
+            .off('hover')
+            .hover(function() { console.log('h'); });
     });
     
     // replace "?" placeholder with selected figure via sliding animation
@@ -523,11 +586,6 @@ ELUS.addInitialFigures = function() {
  * Starts a new game.
  */
 ELUS.newGame = function() {
-    if (ELUS.gameType == 'Random') {
-        ELUS.changeStatusbarText('Sorry, Random game type is not available yet.');
-        return;
-    }
-    
     // show game container, hide buttons
     $('.figures').show();
     $('#button-new-game-grp').hide();
@@ -577,7 +635,7 @@ ELUS.finishLevel = function(won) {
  * Evaluates if the current game has been won.
  */
 ELUS.isGameWon = function() {
-    return ELUS.round == 9 && (ELUS.gameType == "Classic" && ELUS.level == 3) || ELUS.gameType == "Random";
+    return ELUS.round == 9 && (ELUS.gameType == 'Classic' && ELUS.level == 3) || ELUS.gameType == 'Random';
 }
 
 /**
@@ -634,7 +692,7 @@ ELUS.nextLevel = function() {
     $('#tries-left-value').text(ELUS.errorsLeft);
     $('#level-value').text(ELUS.level);
     $('#level-value').attr('title', 'foo');
-    ELUS.changeStatusbarText('Starting level ' + ELUS.level + '.', true, true);
+    ELUS.changeStatusbarText('Starting ' + (ELUS.gameType == 'Random' ? 'random level.' : ('level ' + ELUS.level)), true, true);
     
     // add first 3 figures, then display choices based on last figure
     ELUS.addInitialFigures();
@@ -702,8 +760,8 @@ ELUS.initialize = function() {
         switch ($(e.target).text()) {
             case 'Classic':
                 text = '<b>Classic game</b> - Play 3 consecutive rounds of rules with increasing difficulty.'; break;
-            case "Random":
-                text = '<b>Random game</b> - Play a round with a randomized rule. (NOT AVAILABLE YET)'; break;
+            case 'Random':
+                text = '<b>Random game</b> - Play a round with a randomized rule.'; break;
         }
         ELUS.changeStatusbarText(text);
     }, ELUS.resetStatusbarText);
