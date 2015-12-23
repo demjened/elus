@@ -32,12 +32,25 @@ For example, this is a ![Small Blue Lozenge](resources/figure-sbl.png) and this 
 
 ---
 
-There is a hidden **rule** that applies to the entire game round, and which determines which figure comes next in the sequence. The rule is *based on a single attribute of the last figure* and defines the *required attribute of the next figure.*
+There is a hidden **rule** that applies to the entire game round, and which determines which figure comes next in the sequence. The rule is **based on a single attribute of the last figure** and defines the **required attribute of the next figure**.
 
-For example, the rule can be this:
-> *If the last figure's color is Blue, then choose the figure with Circle shape, otherwise (if the color is Yellow) choose the figure with Lozenge shape instead.*
+In a *Classic* game there are **three levels**, each with an increasingly difficult rule:
 
-In this case - with regards to the selection - the last figure's size and shape do not matter, only the color (*Blue* or *Yellow*). Similarly the chosen figure's size and color do not matter.
+> **Level 1**: Always choose figure with **same** *ATTRIBUTE X* or with **different** *ATTRIBUTE X* as the last figure.
+
+Example: *Always choose figure with a different size than the last one.*
+
+> **Level 2**: If the last figure has **this** of *ATTRIBUTE X*, then choose figure with **this** of *ATTRIBUTE Y*, otherwise choose figure with **that** of *ATTRIBUTE Y*.
+
+Example: *If the last figure is a Circle, choose a Small figure, otherwise choose a Big figure.*
+
+> **Level 3**: If the last figure has **this** of *ATTRIBUTE X*, then choose figure with **this** of *ATTRIBUTE Y*, otherwise choose figure with **that** of *ATTRIBUTE Z* or with **same** *ATTRIBUTE Z* or with **different** *ATTRIBUTE Z* as the last figure.
+
+Example: *If the last figure is Big, choose a Lozenge figure, otherwise choose a Blue figure.*
+
+You can hover over the **[ ? ]** placeholder next to the choices to get a hint about the current rule.
+
+In a *Random* game there is only **one level**, and the rule is randomly generated... it can be anything!
 
 ---
 
@@ -49,33 +62,11 @@ When you start a game, the first three figures are laid out for you according to
 
 Repeat this for the *five next figures* without making *three errors* (selecting an incorrect figure). If you manage to do so, you can go to the next level and challenge a more difficult rule.
 
-### Rules
-
-In a *Classic* game there are **three levels**, each with an increasingly difficult rule:
-
-> **Level 1**: Always choose figure with **same** *ATTRIBUTE X* or with **different** *ATTRIBUTE X* as the last figure.
-
-Example: Always choose figure with a different size than the last one.
-
-> **Level 2**: If the last figure has **this** of *ATTRIBUTE X*, then choose figure with **this** of *ATTRIBUTE Y*, otherwise choose figure with **that** of *ATTRIBUTE Y*.
-
-Example: If the last figure is a Circle, choose a Small figure, otherwise choose a Big figure.
-
-> **Level 3**: If the last figure has **this** of *ATTRIBUTE X*, then choose figure with **this** of *ATTRIBUTE Y*, otherwise choose figure with **that** of *ATTRIBUTE Z* or with **same** *ATTRIBUTE Z* or with **different** *ATTRIBUTE Z* as the last figure.
-
-Example: If the last figure is Big, choose a Lozenge figure, otherwise choose a Blue figure.
-
-You can hover over the **[ ? ]** placeholder next to the choices to get a hint about the current rule.
-
----
-
-In a *Random* game there is only **one level**, and the rule is randomly generated... it can be anything!
-
 ### Tutorial
 
 This quick tutorial shows you how to think when playing ELUS.
 
-Consider the following starting screen (Level 1):
+Consider the following starting screen (Level 1 rule):
 
 ![Example](resources/example1.png)
 
@@ -83,16 +74,14 @@ We know the Level 1 rule is like this:
 
 > Always choose figure with **same** *ATTRIBUTE X* or with **different** *ATTRIBUTE X* as the last figure.
 
-Which attribute remains the same or alternates?
+Which attribute remains the same or alternates on the first three figures?
    * **Size** - *Small* -> *Big* -> *Small*: always different
    * **Color** - *Blue* -> *Blue* -> *Yellow*: no pattern
    * **Shape** - *Circle* -> *Circle* -> *Circle*: always the same
 
 Seems like there are two possible rules: *Always choose figure with different size as the last figure* or *Always choose figure with same shape as the last figure*.
 
-Let's look at the choices. We know there's always **only one that is correct**, the others do not follow the rule.
-
-There are two Circle choices - so the rule cannot be *Always choose figure with same shape as the last figure*. Therefore the rule must be *Always choose figure with different size as the last figure*. So let's select **Big Blue Lozenge**.
+Let's look at the choices. There are two figures with Circle shape: **Small Blue Circle** and **Small Yellow Circle**. Given that there's always **only one choice that is correct**, the rule cannot be *Always choose figure with same shape as the last figure*, because it would not be straightforward which Circle to choose. Therefore the rule must be *Always choose figure with different size as the last figure*. So let's select **Big Blue Lozenge**.
 
 ![Example](resources/example2.png)
 
