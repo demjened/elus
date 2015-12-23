@@ -9,7 +9,7 @@ var ELUS = ELUS || {
     gameType: 'Classic',
     level: 0,
     round: 0,
-    errorsLeft: 0,
+    triesLeft: 0,
     lastFigure: '',
     nextFigureTemplate: '',
     animating: false
@@ -437,7 +437,7 @@ ELUS.addFigureRow = function(round) {
         newRound.append(span);
     } else if (round == 3) {
         var span = $('<span class="stats">'
-            + '<span class="stats-label">Errors</span>'
+            + '<span class="stats-label">Tries</span>'
             + '<span class="stats-value" id="tries-left-value">3</span>'
             + '</span>');
         newRound.append(span);
@@ -537,22 +537,22 @@ ELUS.selectFigure = function(selected, choices) {
     setTimeout(function() {
         var html = '';
         if (!isCorrect) {
-            ELUS.errorsLeft--;
+            ELUS.triesLeft--;
             $('#tries-left-value').fadeOut(200, function() {
-                if (ELUS.errorsLeft <= 1) {
+                if (ELUS.triesLeft <= 1) {
                     $(this).addClass('warning');
                 }
-                $(this).text(ELUS.errorsLeft).fadeIn();
+                $(this).text(ELUS.triesLeft).fadeIn();
             });
-            html = '<span class="incorrect">Incorrect choice!</span> ' + (ELUS.errorsLeft == 1 ? 'Only 1 try left!' : (ELUS.errorsLeft + ' tries left.'));
+            html = '<span class="incorrect">Incorrect choice!</span> ' + (ELUS.triesLeft == 1 ? 'Only 1 try left!' : (ELUS.triesLeft + ' tries left.'));
         } else {
             html = '<span class="correct">Correct choice!</span>';
         }
         ELUS.changeStatusbarText(html, true);
 
         // check how many attempts/rounds we have left in the game
-        if (++ELUS.round == 9 || ELUS.errorsLeft == 0) { // won or lost the round
-            ELUS.finishLevel(ELUS.errorsLeft > 0);
+        if (++ELUS.round == 9 || ELUS.triesLeft == 0) { // won or lost the round
+            ELUS.finishLevel(ELUS.triesLeft > 0);
         } else { // next round
             ELUS.lastFigure = selectedFigure;
             ELUS.nextFigureTemplate = ELUS.getNextFigureTemplate(ELUS.rule, ELUS.lastFigure);
@@ -670,7 +670,7 @@ ELUS.cancelGame = function(btn) {
  */
 ELUS.nextLevel = function() {
     // advance level, reset counters
-    ELUS.level++, ELUS.round = 0, ELUS.errorsLeft = 3;
+    ELUS.level++, ELUS.round = 0, ELUS.triesLeft = 3;
     
     // generate rule and related hint
     ELUS.rule = ELUS.generateRule(ELUS.gameType, ELUS.level);
@@ -697,7 +697,7 @@ ELUS.nextLevel = function() {
     $('#button-cancel-game').show();
     
     // set initial values
-    $('#tries-left-value').text(ELUS.errorsLeft);
+    $('#tries-left-value').text(ELUS.triesLeft);
     $('#level-value').text(ELUS.level);
     $('#level-value').attr('title', 'foo');
     ELUS.changeStatusbarText('Starting ' + (ELUS.gameType == 'Random' ? 'random level.' : ('level ' + ELUS.level + '.')), true, true);
@@ -833,7 +833,7 @@ ELUS.initialize = function() {
     });
     
     // set version label
-    $('.version').text('v' + ELUS.version.toFixed(3));
+    $('.version').text('v' + ELUS.version.toFixed(2));
     
     // initialize game
     ELUS.initializeGame();
