@@ -58,7 +58,7 @@ When you start a game, the first three figures are laid out for you according to
 
 ![Game](resources/game.png)
 
-*Click on the figure you think comes next in sequence according to the rule.* Your choice gets added to the sequence and the game advances to the next round. **Whether or not your choice was correct, it becomes the "new last figure", and the rule will apply - the choices in the next round will be based on that last figure.**
+**Click on the figure you think comes next in sequence according to the rule.** Your choice gets added to the sequence and the game advances to the next round. **Whether or not your choice was correct, it becomes the "new last figure", and the rule will apply - the choices in the next round will be based on that last figure.**
 
 Repeat this for the *five next figures* without making *three errors* (selecting an incorrect figure). If you manage to do so, you can go to the next level and challenge a more difficult rule.
 
